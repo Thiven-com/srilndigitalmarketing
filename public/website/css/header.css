@@ -1,0 +1,554 @@
+/* =========================================================
+   MAIN HEADER
+========================================================= */
+
+.main-header {
+    width: 100%;
+    height: 106px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #f1e5ec;
+
+    position: relative;
+    z-index: 1000;
+}
+
+.container-custom {
+    width: 100%;
+    max-width: 1380px;
+
+    margin: 0 auto;
+    padding: 0 30px;
+}
+
+.main-header .navbar {
+    min-height: 105px;
+
+    display: flex;
+    align-items: center;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.website-logo {
+    width: 72px;
+    height: 72px;
+
+    object-fit: contain;
+
+    display: block;
+}
+
+.main-header .navbar-brand {
+    padding: 0;
+
+    margin-right: 70px;
+
+    display: flex;
+    align-items: center;
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+.main-header .navbar-nav {
+    display: flex;
+
+    align-items: center;
+
+    gap: 34px;
+
+    margin: 0 auto !important;
+}
+
+.main-header .nav-item {
+    display: flex;
+    align-items: center;
+}
+
+.main-header .nav-link {
+    padding: 8px 0 !important;
+
+    color: #30253d;
+
+    font-size: 15px;
+
+    font-weight: 650;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition: all .25s ease;
+}
+
+.main-header .nav-link:hover,
+.main-header .nav-link.active {
+    color: #fff;
+}
+
+.main-header .nav-link.active {
+    position: relative;
+}
+
+.main-header .nav-link.active::after {
+    content: "";
+
+    position: absolute;
+
+    left: 50%;
+    bottom: -8px;
+
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: #df1f78;
+
+    transform: translateX(-50%);
+}
+
+
+/* =========================================================
+   HEADER ACTIONS
+========================================================= */
+
+.header-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    flex-shrink: 0;
+}
+
+
+/* Login */
+
+.btn-login {
+    height: 46px;
+
+    padding: 0 18px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: 1px solid #e8bfd5;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    color: #df1f78;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    transition: all .25s ease;
+}
+
+.btn-login:hover {
+    background: #fff2f8;
+
+    border-color: #df1f78;
+
+    color: #df1f78;
+}
+
+
+/* Primary */
+
+.btn-primary-custom {
+    height: 46px;
+
+    padding: 0 20px;
+
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    border: 0;
+
+    border-radius: 10px;
+
+    background: linear-gradient(
+        135deg,
+        #df1f78,
+        #b33fe0
+    );
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition: all .25s ease;
+}
+
+.btn-primary-custom:hover {
+    color: #ffffff;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 20px rgba(223, 31, 120, .20);
+}
+
+
+/* =========================================================
+   LOGGED-IN CUSTOMER
+========================================================= */
+
+.header-customer {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+
+    margin-left: 25px;
+}
+
+
+/* Customer profile */
+
+.customer-profile-link {
+    min-width: 145px;
+
+    height: 52px;
+
+    padding: 5px 12px 5px 6px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    border: 1px solid #f0dce7;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    text-decoration: none;
+
+    transition: all .25s ease;
+}
+
+.customer-profile-link:hover {
+    border-color: #df1f78;
+
+    background: #fff9fc;
+}
+
+
+/* Avatar */
+
+.header-avatar {
+    width: 40px;
+    height: 40px;
+
+    min-width: 40px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 11px;
+
+    background: linear-gradient(
+        135deg,
+        #df1f78,
+        #a946db
+    );
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 800;
+}
+
+.header-avatar img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+
+/* Customer text */
+
+.header-customer-info {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    line-height: 1.25;
+}
+
+.header-customer-info span {
+    margin-bottom: 2px;
+
+    color: #9b8c96;
+
+    font-size: 10px;
+
+    font-weight: 600;
+}
+
+.header-customer-info strong {
+    display: block;
+
+    max-width: 90px;
+
+    overflow: hidden;
+
+    color: #df1f78;
+
+    font-size: 13px;
+
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+/* =========================================================
+   CUSTOMER DASHBOARD BUTTON
+========================================================= */
+
+.header-customer > .btn-login {
+    height: 46px;
+
+    padding: 0 16px;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.header-logout-form {
+    display: flex;
+
+    margin: 0;
+
+    padding: 0;
+}
+
+.header-logout-form .btn-primary-custom {
+    height: 46px;
+
+    padding: 0 17px;
+}
+
+
+/* =========================================================
+   MOBILE TOGGLE
+========================================================= */
+
+.main-header .navbar-toggler {
+    padding: 5px;
+
+    color: #df1f78;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1199px) {
+
+    .container-custom {
+        padding: 0 20px;
+    }
+
+    .main-header .navbar-brand {
+        margin-right: 30px;
+    }
+
+    .main-header .navbar-nav {
+        gap: 20px;
+    }
+
+    .main-header .nav-link {
+        font-size: 14px;
+    }
+
+    .customer-profile-link {
+        min-width: 125px;
+    }
+
+    .header-customer-info strong {
+        max-width: 75px;
+    }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 991px) {
+
+    .main-header {
+        height: auto;
+
+        min-height: 78px;
+    }
+
+    .main-header .navbar {
+        min-height: 78px;
+
+        padding: 8px 0;
+    }
+
+    .website-logo {
+        width: 58px;
+        height: 58px;
+    }
+
+    .main-header .navbar-brand {
+        margin-right: auto;
+    }
+
+    .main-header .navbar-collapse {
+        margin-top: 15px;
+
+        padding: 15px 0 20px;
+
+        border-top: 1px solid #f1e5ec;
+    }
+
+    .main-header .navbar-nav {
+        width: 100%;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 0;
+
+        margin: 0 !important;
+    }
+
+    .main-header .nav-item {
+        width: 100%;
+    }
+
+    .main-header .nav-link {
+        width: 100%;
+
+        padding: 12px 10px !important;
+
+        border-radius: 8px;
+    }
+
+    .main-header .nav-link:hover,
+    .main-header .nav-link.active {
+        background: #fff3f8;
+    }
+
+    .main-header .nav-link.active::after {
+        display: none;
+    }
+
+
+    /* Guest */
+
+    .header-actions {
+        width: 100%;
+
+        margin-top: 15px;
+
+        padding-top: 15px;
+
+        border-top: 1px solid #f1e5ec;
+    }
+
+    .header-actions > * {
+        flex: 1;
+    }
+
+
+    /* Logged customer */
+
+    .header-customer {
+        width: 100%;
+
+        margin: 15px 0 0;
+
+        padding-top: 15px;
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 8px;
+
+        border-top: 1px solid #f1e5ec;
+    }
+
+    .customer-profile-link {
+        width: 100%;
+
+        height: 56px;
+
+        box-sizing: border-box;
+    }
+
+    .header-customer > .btn-login,
+    .header-logout-form,
+    .header-logout-form .btn-primary-custom {
+        width: 100%;
+    }
+
+    .header-customer > .btn-login,
+    .header-logout-form .btn-primary-custom {
+        height: 45px;
+    }
+
+}
