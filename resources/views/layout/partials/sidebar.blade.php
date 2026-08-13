@@ -1,0 +1,63 @@
+@if (!Route::is(['pos', 'pos-2', 'pos-3', 'pos-4', 'pos-5']))
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+                <!-- Logo -->
+                <div class="sidebar-logo active">
+                        <a href="{{ route('admin.dashboard') }}" class="logo logo-normal">
+                                <img src="{{ asset('website/images/logo.png') }}" alt="Img"
+                                        style="width: 100%; height: 70px; padding-left: 10px">
+                        </a>
+                </div>
+                <div class="sidebar-inner slimscroll">
+                        <div id="sidebar-menu" class="sidebar-menu">
+                                <ul>
+                                        <li class="submenu-open">
+                                                <h6 class="submenu-hdr">Main</h6>
+                                                <ul>
+                                                        <li><a href="{{ route('admin.dashboard') }}"
+                                                                        class="{{ Request::routeIs('admin.dashboard', '/') ? 'active' : '' }}"><i
+                                                                                class="ti ti-layout-grid fs-16 me-2"></i>Dashboard</a>
+                                                        </li>
+                                                </ul>
+                                        </li>
+                                        <li class="submenu-open">
+                                                <h6 class="submenu-hdr">HRM</h6>
+                                                <ul>
+                                                        <li
+                                                                class="{{ Request::routeIs('admin.customers.all') ? 'active' : '' }}">
+                                                                <a href="{{route('admin.customers.all')}}"><i
+                                                                                class="ti ti-user fs-16 me-2"></i><span>Customers</span></a>
+                                                        </li>
+                                                        <li
+                                                                class="{{ Request::routeIs('packages.all') ? 'active' : '' }}">
+                                                                <a href="{{route('packages.all')}}"><i
+                                                                                class="ti ti-package fs-16 me-2"></i><span>Packages</span></a>
+                                                        </li>
+
+                                                </ul>
+                                        </li>
+                                        <li class="submenu-open">
+                                                <h6 class="submenu-hdr">Settings</h6>
+                                                <ul>
+                                                        {{-- <li>
+                                                                <a href="{{route('admin.change.password')}}"
+                                                                        class="{{ Route::is('admin.change.password') ? 'active' : '' }}"><i
+                                                                                class="ti ti-key fs-16 me-2"></i><span>Change
+                                                                                Password</span>
+                                                                </a>
+                                                        </li> --}}
+                                                        <li>
+                                                                <a href="{{route('admin.logout')}}"
+                                                                        class="{{ Request::is('admin.logout') ? 'active' : '' }}"><i
+                                                                                class="ti ti-logout fs-16 me-2"></i><span>Logout</span>
+                                                                </a>
+                                                        </li>
+                                                </ul>
+                                        </li>
+                                </ul>
+
+                        </div>
+                </div>
+        </div>
+        <!-- /Sidebar -->
+@endif
