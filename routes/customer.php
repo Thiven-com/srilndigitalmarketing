@@ -36,6 +36,23 @@ Route::middleware('auth')->prefix('customer')->group(function () {
 
     Route::post('/profile/update', [CustomerController::class, 'updateProfile'])
         ->name('customer.profile.update');
+    Route::get('/kyc', [CustomerController::class, 'kyc'])
+        ->name('customer.kyc');
+
+    Route::post('/kyc/aadhaar/verify', [CustomerController::class, 'verifyAadhaar'])
+        ->name('customer.kyc.aadhaar.verify');
+
+    Route::post('/kyc/aadhaar/verify-otp', [CustomerController::class, 'verifyAadhaarOtp'])
+        ->name('customer.kyc.aadhaar.verify.otp');
+
+    Route::post('/kyc/pan/verify', [CustomerController::class, 'verifyPan'])
+        ->name('customer.kyc.pan.verify');
+
+    Route::post('/kyc/bank/verify', [CustomerController::class, 'verifyBank'])
+        ->name('customer.kyc.bank.verify');
+
+    Route::post('/kyc/upi/verify', [CustomerController::class, 'verifyUpi'])
+        ->name('customer.kyc.upi.verify');
 
 
     /*
