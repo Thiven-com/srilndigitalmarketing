@@ -62,7 +62,7 @@ Route::group(['middleware' => 'admin'], function () {
     // Delete Package
     Route::delete('/packages/{package}', [PackageController::class, 'destroy'])
         ->name('packages.destroy');
-        
+
     Route::get('/customer-packages', [
         CustomerPackageController::class,
         'index'
@@ -82,6 +82,10 @@ Route::group(['middleware' => 'admin'], function () {
         CustomerPackageController::class,
         'reject'
     ])->name('admin.customer-packages.reject');
+    Route::get(
+        '/trees',
+        [TreeController::class, 'index']
+    )->name('admin.trees.index');
 });
 Route::get('products/get-attribute-values/{unitId}', [ProductController::class, 'getAttributeValues'])->name('products.getAttributeValues');
 
