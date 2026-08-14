@@ -398,7 +398,7 @@ class BonusService
                 ' package bonus received from ' .
                 ($packageCustomer->name ?? $packageCustomer->userid),
 
-            'status' => 1,
+            'status' => 'completed',
 
             'is_reverted' => 0,
 

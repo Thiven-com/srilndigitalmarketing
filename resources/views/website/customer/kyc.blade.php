@@ -1,352 +1,581 @@
 @extends('layouts.website')
 
+@section('title', 'KYC Verification')
+
 @section('content')
 
-@php
+<div class="customer-kyc-page">
 
-    $kycStatus = $customer->kyc_status ?? 'pending';
+    <div class="container py-5">
 
-    $aadhaarStatus = $kyc->aadhar_status ?? 'pending';
+        {{-- PAGE HEADER --}}
+        <div class="d-flex justify-content-between align-items-center mb-4">
 
-    $panStatus = $kyc->pan_status ?? 'pending';
+            <div>
+                <span class="text-uppercase small fw-bold text-success">
+                    KYC Verification
+                </span>
 
-    $aadhaarVerified = $aadhaarStatus === 'approved';
+                <h1 class="fw-bold mb-1">
+                    Complete Your KYC
+                </h1>
 
-    $panVerified = $panStatus === 'approved';
-
-@endphp
-
-
-<div class="container py-5">
-
-
-    {{-- =========================================================
-        HEADER
-    ========================================================== --}}
-
-    <div class="mb-4">
-
-        <h2 class="fw-bold mb-1">
-            KYC Verification
-        </h2>
-
-        <p class="text-muted mb-0">
-            Complete your identity verification step by step.
-        </p>
-
-    </div>
-
-
-
-    {{-- =========================================================
-        ALERTS
-    ========================================================== --}}
-
-    @if(session('success'))
-
-        <div class="alert alert-success border-0 rounded-3 mb-4">
-
-            <i class="bi bi-check-circle me-2"></i>
-
-            {{ session('success') }}
-
-        </div>
-
-    @endif
-
-
-    @if(session('error'))
-
-        <div class="alert alert-danger border-0 rounded-3 mb-4">
-
-            <i class="bi bi-exclamation-circle me-2"></i>
-
-            {{ session('error') }}
-
-        </div>
-
-    @endif
-
-
-    @if(session('status'))
-
-        <div class="alert alert-success border-0 rounded-3 mb-4">
-
-            <i class="bi bi-check-circle me-2"></i>
-
-            {{ session('status') }}
-
-        </div>
-
-    @endif
-
-
-    @if($errors->any())
-
-        <div class="alert alert-danger border-0 rounded-3 mb-4">
-
-            <div class="fw-semibold mb-2">
-                Please check the following:
+                <p class="text-muted mb-0">
+                    Verify your Aadhaar and PAN to complete your account verification.
+                </p>
             </div>
 
-            <ul class="mb-0 ps-3">
+            <a href="{{ route('customer.dashboard') }}"
+               class="btn btn-light border rounded-3">
 
-                @foreach($errors->all() as $error)
+                <i class="bi bi-arrow-left me-1"></i>
+                Dashboard
 
-                    <li>
-                        {{ $error }}
-                    </li>
-
-                @endforeach
-
-            </ul>
+            </a>
 
         </div>
 
-    @endif
+
+        {{-- SUCCESS MESSAGE --}}
+        @if(session('success'))
+
+            <div class="alert alert-success alert-dismissible fade show rounded-3">
+
+                <i class="bi bi-check-circle me-2"></i>
+
+                {{ session('success') }}
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        @endif
 
 
+        {{-- ERROR MESSAGE --}}
+        @if(session('error'))
 
-    {{-- =========================================================
-        OVERALL KYC STATUS
-    ========================================================== --}}
+            <div class="alert alert-danger alert-dismissible fade show rounded-3">
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <i class="bi bi-exclamation-circle me-2"></i>
 
-        <div class="card-body p-4">
+                {{ session('error') }}
 
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert">
+                </button>
+
+            </div>
+
+        @endif
 
 
-                <div class="d-flex align-items-center gap-3">
+        {{-- VALIDATION ERRORS --}}
+        @if($errors->any())
 
-                    <div
-                        class="rounded-circle d-flex align-items-center justify-content-center
-                        @if($aadhaarVerified && $panVerified)
-                            bg-success-subtle text-success
-                        @elseif($aadhaarStatus === 'rejected' || $panStatus === 'rejected')
-                            bg-danger-subtle text-danger
+            <div class="alert alert-danger rounded-3">
+
+                <ul class="mb-0">
+
+                    @foreach($errors->all() as $error)
+
+                        <li>
+                            {{ $error }}
+                        </li>
+
+                    @endforeach
+
+                </ul>
+
+            </div>
+
+        @endif
+
+
+        {{-- OVERALL KYC STATUS --}}
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+
+                        <span class="text-muted small">
+                            KYC STATUS
+                        </span>
+
+                        <h4 class="fw-bold mb-0 mt-1">
+                            Account Verification
+                        </h4>
+
+                    </div>
+
+
+                    @if($user->kyc_status == 'approved')
+
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>
+                            KYC Verified
+                        </span>
+
+                    @else
+
+                        <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">
+                            <i class="bi bi-clock me-1"></i>
+                            KYC Pending
+                        </span>
+
+                    @endif
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="row g-4">
+
+
+            {{-- ===================================================== --}}
+            {{-- AADHAAR VERIFICATION --}}
+            {{-- ===================================================== --}}
+
+            <div class="col-lg-6">
+
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+
+                            <div>
+
+                                <div class="kyc-icon bg-success-subtle text-success">
+
+                                    <i class="bi bi-person-vcard"></i>
+
+                                </div>
+
+                                <h4 class="fw-bold mt-3 mb-1">
+                                    Aadhaar Verification
+                                </h4>
+
+                                <p class="text-muted mb-0">
+                                    Verify your Aadhaar number using OTP.
+                                </p>
+
+                            </div>
+
+
+                            @if(isset($kyc) && $kyc->aadhar_status === 'approved')
+
+                                <span class="badge bg-success rounded-pill">
+                                    Verified
+                                </span>
+
+                            @elseif(isset($kyc) && $kyc->aadhar_status === 'rejected')
+
+                                <span class="badge bg-danger rounded-pill">
+                                    Rejected
+                                </span>
+
+                            @else
+
+                                <span class="badge bg-warning text-dark rounded-pill">
+                                    Pending
+                                </span>
+
+                            @endif
+
+                        </div>
+
+
+                        {{-- AADHAAR VERIFIED --}}
+                        @if(isset($kyc) && $kyc->aadhar_status === 'approved')
+
+                            <div class="verification-success">
+
+                                <div class="verification-success-icon">
+
+                                    <i class="bi bi-check-circle-fill"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        Aadhaar Verified
+                                    </strong>
+
+                                    <p class="mb-0 text-muted small">
+
+                                        Aadhaar ending with
+                                        <strong>
+                                            {{ substr($kyc->aadhaar_no, -4) }}
+                                        </strong>
+                                        has been verified successfully.
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
                         @else
-                            bg-warning-subtle text-warning
-                        @endif"
-                        style="width:56px;height:56px;"
-                    >
 
-                        @if($aadhaarVerified && $panVerified)
+                            {{-- AADHAAR FORM --}}
+                            <form action="{{ route('customer.kyc.aadhaar.verify') }}"
+                                  method="POST">
 
-                            <i class="bi bi-shield-check fs-4"></i>
+                                @csrf
 
-                        @elseif($aadhaarStatus === 'rejected' || $panStatus === 'rejected')
 
-                            <i class="bi bi-shield-x fs-4"></i>
+                                <div class="mb-3">
 
-                        @else
+                                    <label class="form-label fw-semibold">
+                                        Aadhaar Number
+                                    </label>
 
-                            <i class="bi bi-shield-exclamation fs-4"></i>
+                                    <input type="text"
+                                           name="aadhaar_no"
+                                           class="form-control form-control-lg rounded-3"
+                                           placeholder="Enter 12 digit Aadhaar number"
+                                           maxlength="12"
+                                           inputmode="numeric"
+                                           value="{{ old('aadhaar_no', $kyc->aadhaar_no ?? '') }}">
+
+                                    <small class="text-muted">
+                                        Enter your 12 digit Aadhaar number.
+                                    </small>
+
+                                </div>
+
+
+                                <button type="submit"
+                                        class="btn btn-success w-100 rounded-3 py-2">
+
+                                    <i class="bi bi-shield-check me-1"></i>
+
+                                    Send Aadhaar OTP
+
+                                </button>
+
+                            </form>
+
+
+                            {{-- OTP FORM --}}
+                            @if(session('aadhaar_otp'))
+
+                                <hr class="my-4">
+
+
+                                <div class="otp-box">
+
+                                    <div class="text-center mb-3">
+
+                                        <div class="otp-icon">
+
+                                            <i class="bi bi-phone"></i>
+
+                                        </div>
+
+                                        <h5 class="fw-bold mt-2">
+                                            Enter Aadhaar OTP
+                                        </h5>
+
+                                        <p class="text-muted small mb-0">
+                                            OTP has been sent to your Aadhaar registered mobile number.
+                                        </p>
+
+                                    </div>
+
+
+                                    <form action="{{ route('customer.kyc.aadhaar.verify.otp') }}"
+                                          method="POST">
+
+                                        @csrf
+
+
+                                        <div class="mb-3">
+
+                                            <input type="text"
+                                                   name="otp"
+                                                   class="form-control form-control-lg text-center rounded-3"
+                                                   placeholder="Enter OTP"
+                                                   maxlength="6"
+                                                   inputmode="numeric">
+
+                                        </div>
+
+
+                                        <button type="submit"
+                                                class="btn btn-primary w-100 rounded-3 py-2">
+
+                                            <i class="bi bi-check-circle me-1"></i>
+
+                                            Verify Aadhaar OTP
+
+                                        </button>
+
+                                    </form>
+
+                                </div>
+
+                            @endif
 
                         @endif
 
                     </div>
 
-
-                    <div>
-
-                        <h5 class="fw-bold mb-1">
-                            KYC Verification
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            Verify your Aadhaar and PAN to complete KYC.
-                        </p>
-
-                    </div>
-
                 </div>
-
-
-
-                @if($aadhaarVerified && $panVerified)
-
-                    <span class="badge bg-success-subtle text-success rounded-pill px-4 py-2">
-
-                        <i class="bi bi-check-circle me-1"></i>
-
-                        KYC Verified
-
-                    </span>
-
-                @elseif($aadhaarStatus === 'rejected' || $panStatus === 'rejected')
-
-                    <span class="badge bg-danger-subtle text-danger rounded-pill px-4 py-2">
-
-                        <i class="bi bi-x-circle me-1"></i>
-
-                        KYC Rejected
-
-                    </span>
-
-                @else
-
-                    <span class="badge bg-warning-subtle text-warning rounded-pill px-4 py-2">
-
-                        <i class="bi bi-clock me-1"></i>
-
-                        Verification Pending
-
-                    </span>
-
-                @endif
 
             </div>
 
-        </div>
 
-    </div>
+            {{-- ===================================================== --}}
+            {{-- PAN VERIFICATION --}}
+            {{-- ===================================================== --}}
+
+            <div class="col-lg-6">
+
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+
+                            <div>
+
+                                <div class="kyc-icon bg-primary-subtle text-primary">
+
+                                    <i class="bi bi-credit-card-2-front"></i>
+
+                                </div>
+
+                                <h4 class="fw-bold mt-3 mb-1">
+                                    PAN Verification
+                                </h4>
+
+                                <p class="text-muted mb-0">
+                                    Verify your PAN after Aadhaar verification.
+                                </p>
+
+                            </div>
 
 
+                            @if(isset($kyc) && $kyc->pan_status === 'approved')
 
-    {{-- =========================================================
-        PROGRESS
-    ========================================================== --}}
+                                <span class="badge bg-success rounded-pill">
+                                    Verified
+                                </span>
 
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            @elseif(isset($kyc) && $kyc->pan_status === 'rejected')
 
-        <div class="card-body p-4">
+                                <span class="badge bg-danger rounded-pill">
+                                    Rejected
+                                </span>
 
-            <div class="row g-3">
-
-
-                {{-- STEP 1 --}}
-
-                <div class="col-md-6">
-
-                    <div
-                        class="d-flex align-items-center gap-3 p-3 rounded-3
-                        @if($aadhaarVerified)
-                            bg-success-subtle
-                        @else
-                            bg-light
-                        @endif"
-                    >
-
-                        <div
-                            class="rounded-circle d-flex align-items-center justify-content-center
-                            @if($aadhaarVerified)
-                                bg-success text-white
                             @else
-                                bg-secondary text-white
-                            @endif"
-                            style="width:40px;height:40px;"
-                        >
 
-                            @if($aadhaarVerified)
-
-                                <i class="bi bi-check-lg"></i>
-
-                            @else
-
-                                1
+                                <span class="badge bg-warning text-dark rounded-pill">
+                                    Pending
+                                </span>
 
                             @endif
 
                         </div>
 
 
-                        <div>
+                        {{-- PAN VERIFIED --}}
+                        @if(isset($kyc) && $kyc->pan_status === 'approved')
 
-                            <div class="fw-semibold">
-                                Aadhaar
+                            <div class="verification-success">
+
+                                <div class="verification-success-icon">
+
+                                    <i class="bi bi-check-circle-fill"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <strong>
+                                        PAN Verified
+                                    </strong>
+
+                                    <p class="mb-0 text-muted small">
+
+                                        PAN ending with
+                                        <strong>
+                                            {{ substr($kyc->pan_no, -4) }}
+                                        </strong>
+                                        has been verified successfully.
+
+                                    </p>
+
+                                </div>
+
                             </div>
 
-                            <small class="text-muted">
-
-                                @if($aadhaarVerified)
-
-                                    Verified
-
-                                @else
-
-                                    Required first
-
-                                @endif
-
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-
-                {{-- STEP 2 --}}
-
-                <div class="col-md-6">
-
-                    <div
-                        class="d-flex align-items-center gap-3 p-3 rounded-3
-                        @if($panVerified)
-                            bg-success-subtle
-                        @elseif($aadhaarVerified)
-                            bg-primary-subtle
                         @else
-                            bg-light
-                        @endif"
-                    >
 
-                        <div
-                            class="rounded-circle d-flex align-items-center justify-content-center
-                            @if($panVerified)
-                                bg-success text-white
-                            @elseif($aadhaarVerified)
-                                bg-primary text-white
+
+                            {{-- PAN FORM --}}
+                            @if(isset($kyc) && $kyc->aadhar_status === 'approved')
+
+                                <form action="{{ route('customer.kyc.pan.verify') }}"
+                                      method="POST">
+
+                                    @csrf
+
+
+                                    <div class="mb-3">
+
+                                        <label class="form-label fw-semibold">
+                                            PAN Number
+                                        </label>
+
+                                        <input type="text"
+                                               name="pan_no"
+                                               class="form-control form-control-lg rounded-3 text-uppercase"
+                                               placeholder="Enter PAN number"
+                                               maxlength="10"
+                                               value="{{ old('pan_no', $kyc->pan_no ?? '') }}">
+
+                                        <small class="text-muted">
+                                            Example: ABCDE1234F
+                                        </small>
+
+                                    </div>
+
+
+                                    <button type="submit"
+                                            class="btn btn-primary w-100 rounded-3 py-2">
+
+                                        <i class="bi bi-shield-check me-1"></i>
+
+                                        Verify PAN
+
+                                    </button>
+
+                                </form>
+
                             @else
-                                bg-secondary text-white
-                            @endif"
-                            style="width:40px;height:40px;"
-                        >
 
-                            @if($panVerified)
+                                <div class="kyc-disabled-box">
 
-                                <i class="bi bi-check-lg"></i>
+                                    <div class="kyc-disabled-icon">
 
-                            @elseif(!$aadhaarVerified)
+                                        <i class="bi bi-lock"></i>
 
-                                <i class="bi bi-lock"></i>
+                                    </div>
 
-                            @else
+                                    <h6 class="fw-bold">
+                                        Aadhaar Verification Required
+                                    </h6>
 
-                                2
+                                    <p class="text-muted small mb-0">
+
+                                        Please complete Aadhaar verification before
+                                        verifying your PAN.
+
+                                    </p>
+
+                                </div>
 
                             @endif
 
-                        </div>
+                        @endif
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
 
 
-                        <div>
+        {{-- KYC INFORMATION --}}
+        <div class="card border-0 shadow-sm rounded-4 mt-4">
 
-                            <div class="fw-semibold">
-                                PAN
+            <div class="card-body p-4">
+
+                <h5 class="fw-bold mb-3">
+                    Why complete KYC?
+                </h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-4">
+
+                        <div class="d-flex gap-3">
+
+                            <i class="bi bi-shield-check fs-3 text-success"></i>
+
+                            <div>
+
+                                <strong>
+                                    Secure Account
+                                </strong>
+
+                                <p class="text-muted small mb-0">
+                                    Helps keep your account secure.
+                                </p>
+
                             </div>
 
-                            <small class="text-muted">
+                        </div>
 
-                                @if($panVerified)
+                    </div>
 
-                                    Verified
 
-                                @elseif($aadhaarVerified)
+                    <div class="col-md-4">
 
-                                    Ready to verify
+                        <div class="d-flex gap-3">
 
-                                @else
+                            <i class="bi bi-check-circle fs-3 text-primary"></i>
 
-                                    Complete Aadhaar first
+                            <div>
 
-                                @endif
+                                <strong>
+                                    Verified Identity
+                                </strong>
 
-                            </small>
+                                <p class="text-muted small mb-0">
+                                    Confirms your identity.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-4">
+
+                        <div class="d-flex gap-3">
+
+                            <i class="bi bi-wallet2 fs-3 text-warning"></i>
+
+                            <div>
+
+                                <strong>
+                                    Account Benefits
+                                </strong>
+
+                                <p class="text-muted small mb-0">
+                                    Access account features after verification.
+                                </p>
+
+                            </div>
 
                         </div>
 
@@ -359,417 +588,106 @@
         </div>
 
     </div>
-
-
-
-    {{-- =========================================================
-        STEP 1 - AADHAAR
-    ========================================================== --}}
-
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-
-        <div class="card-body p-4 p-lg-5">
-
-
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-
-
-                <div class="d-flex align-items-center gap-3">
-
-                    <div
-                        class="rounded-3 bg-primary-subtle text-primary d-flex align-items-center justify-content-center"
-                        style="width:50px;height:50px;"
-                    >
-
-                        <i class="bi bi-person-vcard fs-4"></i>
-
-                    </div>
-
-
-                    <div>
-
-                        <h5 class="fw-bold mb-1">
-                            Step 1 — Aadhaar Verification
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            Verify your Aadhaar before continuing.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-
-                @if($aadhaarStatus === 'approved')
-
-                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
-
-                        <i class="bi bi-check-circle me-1"></i>
-
-                        Verified
-
-                    </span>
-
-                @elseif($aadhaarStatus === 'rejected')
-
-                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
-
-                        <i class="bi bi-x-circle me-1"></i>
-
-                        Rejected
-
-                    </span>
-
-                @else
-
-                    <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">
-
-                        <i class="bi bi-clock me-1"></i>
-
-                        Pending
-
-                    </span>
-
-                @endif
-
-            </div>
-
-
-
-            @if($aadhaarVerified)
-
-                <div class="alert alert-success border-0 rounded-3 mb-0">
-
-                    <div class="d-flex gap-3">
-
-                        <i class="bi bi-shield-check fs-4"></i>
-
-                        <div>
-
-                            <div class="fw-semibold">
-                                Aadhaar Verified Successfully
-                            </div>
-
-                            <small>
-                                Your Aadhaar verification is complete.
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            @else
-
-                <form
-                    action="{{ route('customer.kyc.aadhaar.verify') }}"
-                    method="POST"
-                >
-
-                    @csrf
-
-
-                    <div class="row g-3">
-
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label fw-semibold">
-                                Aadhaar Number
-                            </label>
-
-                            <input
-                                type="text"
-                                name="aadhaar_no"
-                                class="form-control form-control-lg"
-                                placeholder="Enter Aadhaar number"
-                                value="{{ old('aadhaar_no', $kyc->aadhaar_no ?? '') }}"
-                                maxlength="12"
-                                minlength="12"
-                                inputmode="numeric"
-                                pattern="[0-9]{12}"
-                                required
-                            >
-
-                            <small class="text-muted">
-                                Enter your 12-digit Aadhaar number.
-                            </small>
-
-                        </div>
-
-
-
-                        <div class="col-lg-6 d-flex align-items-end">
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary btn-lg w-100 rounded-3"
-                            >
-
-                                <i class="bi bi-shield-check me-2"></i>
-
-                                Verify Aadhaar
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </form>
-
-            @endif
-
-        </div>
-
-    </div>
-
-
-
-    {{-- =========================================================
-        STEP 2 - PAN
-    ========================================================== --}}
-
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-
-        <div class="card-body p-4 p-lg-5">
-
-
-            <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-
-
-                <div class="d-flex align-items-center gap-3">
-
-                    <div
-                        class="rounded-3 bg-success-subtle text-success d-flex align-items-center justify-content-center"
-                        style="width:50px;height:50px;"
-                    >
-
-                        <i class="bi bi-card-text fs-4"></i>
-
-                    </div>
-
-
-                    <div>
-
-                        <h5 class="fw-bold mb-1">
-                            Step 2 — PAN Verification
-                        </h5>
-
-                        <p class="text-muted mb-0">
-                            PAN verification is available after Aadhaar.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-
-                @if($panStatus === 'approved')
-
-                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">
-
-                        <i class="bi bi-check-circle me-1"></i>
-
-                        Verified
-
-                    </span>
-
-                @elseif($panStatus === 'rejected')
-
-                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">
-
-                        <i class="bi bi-x-circle me-1"></i>
-
-                        Rejected
-
-                    </span>
-
-                @elseif(!$aadhaarVerified)
-
-                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-2">
-
-                        <i class="bi bi-lock me-1"></i>
-
-                        Locked
-
-                    </span>
-
-                @else
-
-                    <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-2">
-
-                        <i class="bi bi-clock me-1"></i>
-
-                        Pending
-
-                    </span>
-
-                @endif
-
-            </div>
-
-
-
-            @if(!$aadhaarVerified)
-
-                <div class="alert alert-light border rounded-3 mb-0">
-
-                    <i class="bi bi-lock me-2"></i>
-
-                    Please complete Aadhaar verification first.
-
-                </div>
-
-
-            @elseif($panVerified)
-
-                <div class="alert alert-success border-0 rounded-3 mb-0">
-
-                    <div class="d-flex gap-3">
-
-                        <i class="bi bi-shield-check fs-4"></i>
-
-                        <div>
-
-                            <div class="fw-semibold">
-                                PAN Verified Successfully
-                            </div>
-
-                            <small>
-                                Your PAN verification is complete.
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-            @else
-
-                <form
-                    action="{{ route('customer.kyc.pan.verify') }}"
-                    method="POST"
-                >
-
-                    @csrf
-
-
-                    <div class="row g-3">
-
-
-                        <div class="col-lg-6">
-
-                            <label class="form-label fw-semibold">
-                                PAN Number
-                            </label>
-
-                            <input
-                                type="text"
-                                name="pan_no"
-                                class="form-control form-control-lg text-uppercase"
-                                placeholder="ABCDE1234F"
-                                value="{{ old('pan_no', $kyc->pan_no ?? '') }}"
-                                maxlength="10"
-                                minlength="10"
-                                style="text-transform: uppercase;"
-                                required
-                            >
-
-                            <small class="text-muted">
-                                Enter your 10-character PAN number.
-                            </small>
-
-                        </div>
-
-
-
-                        <div class="col-lg-6 d-flex align-items-end">
-
-                            <button
-                                type="submit"
-                                class="btn btn-success btn-lg w-100 rounded-3"
-                            >
-
-                                <i class="bi bi-shield-check me-2"></i>
-
-                                Verify PAN
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <div class="alert alert-light border rounded-3 mt-3 mb-0">
-
-                        <small class="text-muted">
-
-                            Your PAN details will be verified through the
-                            verification service.
-
-                        </small>
-
-                    </div>
-
-                </form>
-
-            @endif
-
-        </div>
-
-    </div>
-
-
-
-    {{-- =========================================================
-        KYC COMPLETION
-    ========================================================== --}}
-
-    @if($aadhaarVerified && $panVerified)
-
-        <div class="card border-0 shadow-sm rounded-4">
-
-            <div class="card-body p-5 text-center">
-
-
-                <div
-                    class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mx-auto mb-3"
-                    style="width:70px;height:70px;"
-                >
-
-                    <i class="bi bi-shield-check fs-1"></i>
-
-                </div>
-
-
-                <h4 class="fw-bold">
-                    KYC Completed
-                </h4>
-
-
-                <p class="text-muted mb-0">
-
-                    Your Aadhaar and PAN verification have been
-                    completed successfully.
-
-                </p>
-
-            </div>
-
-        </div>
-
-    @endif
-
 
 </div>
+
+
+<style>
+
+.customer-kyc-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.kyc-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.verification-success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.verification-success-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.otp-box {
+    background: #f8fafc;
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.otp-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.kyc-disabled-box {
+    background: #f8f9fa;
+    border: 1px dashed #ced4da;
+    border-radius: 14px;
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.kyc-disabled-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e9ecef;
+    color: #6c757d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 .2rem rgba(25, 135, 84, .12);
+}
+
+@media (max-width: 767px) {
+
+    .customer-kyc-page .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .customer-kyc-page h1 {
+        font-size: 26px;
+    }
+
+}
+
+</style>
 
 @endsection

@@ -6,8 +6,8 @@
                     <h4>Packages</h4>
                     <h6>Manage your packages</h6>
                 </div>
-                <div class="page-btn"> <a href="{{ route('packages.create') }}" class="btn btn-primary"> <i
-                            class="ti ti-circle-plus me-1"></i>Add Package </a> </div>
+                {{-- <div class="page-btn"> <a href="{{ route('packages.create') }}" class="btn btn-primary"> <i
+                            class="ti ti-circle-plus me-1"></i>Add Package </a> </div> --}}
             </div>
             <div class="card">
                 <div class="card-body p-0">
@@ -49,14 +49,14 @@
                                                 class="me-2 p-2 btn btn-sm btn-info text-white" title="View">
                                                 <i data-feather="eye" class="feather-eye"></i>
                                             </a>
-                                            <a href="{{ route('packages.edit', $package->id) }}" class="me-2 p-2"> <i
+                                            {{-- <a href="{{ route('packages.edit', $package->id) }}" class="me-2 p-2"> <i
                                                     data-feather="edit" class="feather-edit text-primary"></i> </a>
                                             <form action="{{ route('packages.destroy', $package->id) }}" method="POST"
                                                 class="d-inline"> @csrf @method('DELETE') <button type="submit"
                                                     class="btn btn-link p-2"
                                                     onclick="return confirm('Delete this package?')"> <i
                                                         data-feather="trash-2" class="feather-trash-2 text-danger"></i>
-                                                </button> </form>
+                                                </button> </form> --}}
                                         </div>
                                     </td>
                             </tr> @empty <tr>

@@ -14,10 +14,10 @@
                 {{ $node['userId'] ?? '-' }}
             </div>
 
-            <div class="customer-id">
+            {{-- <div class="customer-id">
                 Customer ID:
                 {{ $node['customer_id'] ?? '-' }}
-            </div>
+            </div> --}}
 
             @if(!empty($node['placedunder_id']))
 
@@ -30,12 +30,12 @@
 
             @endif
 
-            <div class="children-count">
+            {{-- <div class="children-count">
 
                 Children:
                 {{ $node['placedunderid_cnt'] ?? 0 }}
 
-            </div>
+            </div> --}}
 
         </div>
 

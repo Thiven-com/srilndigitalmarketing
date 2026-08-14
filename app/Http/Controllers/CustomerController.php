@@ -10,9 +10,11 @@ use App\Models\Kyc;
 use App\Models\Package;
 use App\Models\PackageComponent;
 use App\Models\PackageLevel;
+use App\Models\Reward;
 use App\Models\ThreeWayDirectReferral;
 use App\Models\ThreeWayReferral;
 use App\Services\PlanApiService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -519,9 +521,19 @@ class CustomerController extends Controller
     {
         $customer = auth()->user();
 
+        $rewardHistory = Reward::where(
+            'user_id',
+            $customer->id
+        )
+            ->latest('id')
+            ->get();
+
         return view(
             'website.customer.wallet',
-            compact('customer')
+            compact(
+                'customer',
+                'rewardHistory'
+            )
         );
     }
 
@@ -572,119 +584,40 @@ class CustomerController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Customer Packages
+        | My Direct Referrals
         |--------------------------------------------------------------------------
         */
 
-        $customerPackages = CustomerPackage::with('package')
-            ->where('customer_id', $customer->id)
-            ->where('payment_status', 'approved')
-            ->latest()
+        $referrals = Customer::where(
+            'sponsor_id',
+            $customer->userid
+        )
+            ->orderBy('created_at', 'desc')
             ->get();
 
-
         /*
         |--------------------------------------------------------------------------
-        | Package List
+        | Statistics
         |--------------------------------------------------------------------------
         */
 
-        $packages = $customerPackages
-            ->map(function ($customerPackage) {
+        $totalReferrals = $referrals->count();
 
-                if (!$customerPackage->package) {
-                    return null;
-                }
-
-                $package = clone $customerPackage->package;
-
-                /*
-                 * Important:
-                 * Customer can purchase same package multiple times.
-                 *
-                 * Therefore we keep customer_package ID.
-                 */
-
-                $package->customer_package_id =
-                    $customerPackage->id;
-
-                return $package;
-
-            })
-            ->filter()
-            ->values();
-
+        $directReferrals = $totalReferrals;
 
         /*
         |--------------------------------------------------------------------------
-        | Selected Customer Package
+        | Return View
         |--------------------------------------------------------------------------
         */
-
-        $selectedCustomerPackage = null;
-
-        $selectedPackage = null;
-
-
-        if ($request->filled('package')) {
-
-            $selectedCustomerPackage = $customerPackages
-                ->firstWhere(
-                    'id',
-                    $request->package
-                );
-
-
-            if (
-                $selectedCustomerPackage &&
-                $selectedCustomerPackage->package
-            ) {
-
-                $selectedPackage =
-                    $selectedCustomerPackage->package;
-
-            }
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Referral Data
-        |--------------------------------------------------------------------------
-        |
-        | Will connect later:
-        |
-        | three_way_referrals
-        | three_way_direct_referrals
-        |
-        | five_way_referrals
-        | five_way_direct_referrals
-        |
-        */
-
-        $referrals = collect();
-
-        $totalReferrals = 0;
-
-        $directReferrals = 0;
-
-        $totalPoints = 0;
-
-        $totalIncome = 0;
-
 
         return view(
             'website.customer.referrals',
             compact(
                 'customer',
-                'packages',
-                'selectedPackage',
-                'selectedCustomerPackage',
                 'referrals',
                 'totalReferrals',
-                'directReferrals',
-                'totalPoints',
-                'totalIncome'
+                'directReferrals'
             )
         );
     }
@@ -1135,12 +1068,10 @@ class CustomerController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'otp' => [
-                'required',
-                'digits:4',
+                'required'
             ],
         ], [
-            'otp.required' => 'Please enter the Aadhaar OTP.',
-            'otp.digits' => 'OTP must be exactly 4 digits.',
+            'otp.required' => 'Please enter the Aadhaar OTP.'
         ]);
 
         if ($validator->fails()) {
@@ -1288,12 +1219,10 @@ class CustomerController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'pan_no' => [
-                'required',
-                'regex:/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/',
+                'required'
             ],
         ], [
-            'pan_no.required' => 'Please enter your PAN number.',
-            'pan_no.regex' => 'Please enter a valid PAN number.',
+            'pan_no.required' => 'Please enter your PAN number.'
         ]);
 
         if ($validator->fails()) {

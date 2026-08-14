@@ -273,9 +273,7 @@
                         <i class="bi bi-wallet2"></i>
 
                     </div>
-
-
-                    <div class="balance-grid">
+                    {{-- <div class="balance-grid">
 
                         <div class="balance-box">
 
@@ -310,7 +308,7 @@
 
                         </div>
 
-                    </div>
+                    </div> --}}
 
                 </div>
 
