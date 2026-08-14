@@ -162,37 +162,4 @@ class AuthController extends Controller
             ->with('success', 'Password reset successfully.');
     }
 
-    public function generateUserIds()
-    {
-        $customers = Customer::whereNull('userid')
-            ->orWhere('userid', '')
-            ->get();
-
-        $service = new CustomerService();
-
-        $updatedCount = 0;
-
-        foreach ($customers as $customer) {
-
-            // ensure unique userid
-            do {
-                $userId = $service->generateUserID();
-            } while (
-                Customer::where('userid', $userId)->exists()
-            );
-
-            $updated = Customer::where('id', $customer->id)->update([
-                'userid' => $userId,
-                'sponsor_id' => "ASK11122025",
-                'sponsor_name' => "ASKRPAY",
-                'updated_at' => now()
-            ]);
-
-            if ($updated) {
-                $updatedCount++;
-            }
-        }
-
-        return "Updated customers: " . $updatedCount;
-    }
 }
