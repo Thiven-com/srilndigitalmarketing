@@ -13979,7 +13979,7 @@ table.dataTable {
 .page-wrapper .content {
   padding: 24px;
   padding-bottom: 0;
-  min-height: calc(100vh - 105px);
+  /* min-height: calc(100vh - 105px); */
 }
 
 @media (max-width: 991.96px) {
