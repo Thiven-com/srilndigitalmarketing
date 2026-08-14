@@ -158,55 +158,6 @@
                 <div class="dashboard-main">
 
 
-                    <!-- My Package -->
-                    <div class="dashboard-card">
-
-                        <div class="dashboard-card-header">
-
-                            <div>
-
-                                <span class="card-small-title">
-                                    MY PACKAGE
-                                </span>
-
-                                <h3>
-                                    Package Details
-                                </h3>
-
-                            </div>
-
-                            <i class="bi bi-box-seam"></i>
-
-                        </div>
-
-
-                        <div class="empty-package">
-
-                            <div class="empty-icon">
-                                <i class="bi bi-box"></i>
-                            </div>
-
-                            <h4>
-                                No Package Selected
-                            </h4>
-
-                            <p>
-                                Choose a growth package to start your journey.
-                            </p>
-
-                            <a
-                                href="{{ route('packages') }}"
-                                class="dashboard-primary-btn"
-                            >
-                                Explore Packages
-                                <i class="bi bi-arrow-right"></i>
-                            </a>
-
-                        </div>
-
-                    </div>
-
-
                     <!-- Quick Actions -->
                     <div class="dashboard-card">
 

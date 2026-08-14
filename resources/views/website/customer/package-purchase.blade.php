@@ -140,8 +140,6 @@
                                     enctype="multipart/form-data">
 
                                     @csrf
-
-
                                     <div class="mb-3">
 
                                         <label class="form-label fw-semibold">

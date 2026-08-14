@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BillerCategoryController;
 use App\Http\Controllers\Admin\BillerGroupController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CustomerPackageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GiftCardCategoryController;
 use App\Http\Controllers\Admin\GiftCardProductController;
@@ -61,71 +62,26 @@ Route::group(['middleware' => 'admin'], function () {
     // Delete Package
     Route::delete('/packages/{package}', [PackageController::class, 'destroy'])
         ->name('packages.destroy');
+        
+    Route::get('/customer-packages', [
+        CustomerPackageController::class,
+        'index'
+    ])->name('admin.customer-packages.index');
 
+    Route::get('/customer-packages/{id}', [
+        CustomerPackageController::class,
+        'show'
+    ])->name('admin.customer-packages.show');
 
-    //Billers
-    Route::resource('biller/categories', BillerCategoryController::class)->names('admin.biller.category');
-    Route::resource('biller/groups', BillerGroupController::class)->names('admin.biller.groups');
+    Route::post('/customer-packages/{id}/approve', [
+        CustomerPackageController::class,
+        'approve'
+    ])->name('admin.customer-packages.approve');
 
-    Route::resource('activities', ActivityController::class)->names('admin.activities');
-
-    //Giftsection
-    Route::resource('gift/card/products', GiftCardProductController::class)->names('admin.giftcard.products');
-    Route::resource('gift/types', GiftTypeController::class)->names('admin.gifttypes');
-    Route::resource('gift/card/categories', GiftCardCategoryController::class)->names('admin.giftcard.category');
-
-    //Wallet
-    Route::post('/wallet/add', [WalletController::class, 'add'])->name('admin.wallet.add');
-    Route::post('/wallet/deduct', [WalletController::class, 'deduct'])->name('admin.wallet.deduct');
-
-    Route::any('genealogy-tree/{id}', [TreeController::class, 'genealogyTree']);
-    Route::any('leadership-table/{id}', [TreeController::class, 'genealogyTable']);
-    Route::any('t20-genealogy-tree/{id}', [TreeController::class, 't20GenealogyTree']);
-    Route::any('t20-table/{id}', [TreeController::class, 't20Table']);
-
-    Route::any('unilevel-genealogy-tree/{id}', [TreeController::class, 'unilevelGenealogyTree']);
-    Route::get(
-        'unilevel-table/{id?}',
-        [TreeController::class, 'unilevelTable']
-    )->name('admin.unilevel.table');
-
-    Route::post(
-        '/makeSubscriber/{id}',
-        [CustomerController::class, 'makeSubscriber']
-    )->name('admin.makeSubscriber');
-
-    Route::post('/customers/{customer}/update', [CustomerController::class, 'update'])
-        ->name('admin.customer.update');
-
-    Route::get('generateUserIds', [AuthController::class, 'generateUserIds']);
-
-    Route::post(
-        'customer/{customer}/update-sponsor',
-        [CustomerController::class, 'updateSponsor']
-    )->name('admin.customer.updateSponsor');
-    Route::get('rebuildAllT20Tree', [CustomerController::class, 'rebuildAllT20Tree']);
-    Route::get('rebuildCustomerReferralTree', [CustomerController::class, 'rebuildCustomerReferralTree']);
-    //wallet
-    Route::get('wallet-recharge/approve/{id}', [WalletRechargeController::class, 'approveWalletRecharge'])
-        ->name('admin.wallet.recharge.approve');
-    Route::get(
-        'wallet-recharges',
-        [WalletRechargeController::class, 'walletRechargeHistory']
-    )->name('admin.wallet.recharges');
-
-    //Withdraw Request
-    Route::resource('withdraw-requests', WithdrawRequestController::class)->names('admin.withdraw-requests');
-    Route::post('withdraw-requests/{id}/status', [WithdrawRequestController::class, 'updateStatus'])
-        ->name('withdraw-requests.status');
-
-    //Ecommerce
-    Route::resource('products', 'ProductController')->names('admin.products');
-    Route::resource('categories', 'CategoryController')->names('admin.categories');
-    Route::resource('brands', 'BrandController')->names('admin.brands');
-    Route::resource('units', 'UnitController')->names('admin.units');
-    Route::resource('attributes', 'AttributeController')->names('admin.attributes');
-    Route::delete('/product/{id}', [ProductController::class, 'destroy'])
-        ->name('admin.productDestroy');
+    Route::post('/customer-packages/{id}/reject', [
+        CustomerPackageController::class,
+        'reject'
+    ])->name('admin.customer-packages.reject');
 });
 Route::get('products/get-attribute-values/{unitId}', [ProductController::class, 'getAttributeValues'])->name('products.getAttributeValues');
 

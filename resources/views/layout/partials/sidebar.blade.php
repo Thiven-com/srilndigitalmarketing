@@ -33,6 +33,11 @@
                                                                 <a href="{{route('packages.all')}}"><i
                                                                                 class="ti ti-package fs-16 me-2"></i><span>Packages</span></a>
                                                         </li>
+                                                        <li
+                                                                class="{{ Request::routeIs('customer-packages') ? 'active' : '' }}">
+                                                                <a href="{{route('admin.customer-packages.index')}}"><i
+                                                                                class="ti ti-package fs-16 me-2"></i><span>Customer Packages</span></a>
+                                                        </li>
 
                                                 </ul>
                                         </li>

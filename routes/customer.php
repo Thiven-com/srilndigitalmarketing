@@ -31,7 +31,7 @@ Route::middleware('auth')->prefix('customer')->group(function () {
 
     Route::get('/profile', [CustomerController::class, 'profile'])
         ->name('customer.profile');
-    Route::get('/profile/edit', [CustomerController::class, 'profile'])
+    Route::get('/profile/edit', [CustomerController::class, 'editProfile'])
         ->name('customer.profile.edit');
 
     Route::post('/profile/update', [CustomerController::class, 'updateProfile'])
@@ -63,7 +63,16 @@ Route::middleware('auth')->prefix('customer')->group(function () {
 
     Route::get('/myPackages', [CustomerController::class, 'myPackages'])
         ->name('customer.packages');
+    Route::get('/package/{id}/details', [
+        CustomerController::class,
+        'packageDetails'
+    ])->name('customer.package.details');
 
+
+    Route::get('/package/{id}/tree', [
+        CustomerController::class,
+        'packageTree'
+    ])->name('customer.package.tree');
 
     /*
     |--------------------------------------------------------------------------

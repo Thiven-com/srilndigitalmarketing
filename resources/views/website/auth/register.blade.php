@@ -77,6 +77,36 @@
 
 
                     {{-- NAME --}}
+                    {{-- SPONSOR --}}
+
+                    <div class="auth-field">
+
+                        <label>
+                            Sponsor User ID
+                            <span class="text-muted">(Optional)</span>
+                        </label>
+
+                        <div class="auth-input">
+
+                            <input type="text" name="sponsor_user_id" value="{{ old('sponsor_user_id', request('ref')) }}"
+                                placeholder="Enter Sponsor User ID (Optional)">
+
+                            <i class="bi bi-person-check"></i>
+
+                        </div>
+
+                        @error('sponsor_user_id')
+                            <small class="text-danger">
+                                {{ $message }}
+                            </small>
+                        @enderror
+
+                        <small class="text-muted">
+                            Leave empty if you are creating the main account.
+                        </small>
+
+                    </div>
+
 
                     <div class="auth-field">
 
@@ -95,7 +125,9 @@
                         </div>
 
                         @error('name')
-                            <small>{{ $message }}</small>
+                            <small class="text-danger">
+                                {{ $message }}
+                            </small>
                         @enderror
 
                     </div>

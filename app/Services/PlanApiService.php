@@ -24,7 +24,7 @@ class PlanApiService
             'ApiPassword' => $this->apiPassword,
             'TokenID' => $this->tokenId,
             'Content-Type' => 'application/json'
-        ])->withOptions([
+        ])->asForm()->withOptions([
                     'curl' => [
                         CURLOPT_SSL_OPTIONS => CURLSSLOPT_NATIVE_CA,
                     ],
@@ -79,10 +79,20 @@ class PlanApiService
      */
     public function verifyAadhaar($aadhaarNo)
     {
+        $aadhaarNo = preg_replace('/\D/', '', $aadhaarNo);
+
         $payload = [
             'Aadhaarid' => $aadhaarNo,
             'ApiMode' => 1,
         ];
+
+        Log::info('Aadhaar Send OTP Request', [
+            'aadhaar' => substr($aadhaarNo, 0, 4) . 'XXXXXXXX',
+            'payload' => [
+                'Aadhaarid' => substr($aadhaarNo, 0, 4) . 'XXXXXXXX',
+                'ApiMode' => 1,
+            ],
+        ]);
 
         return $this->callApi(
             'Ekyc/AdharVerification',

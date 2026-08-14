@@ -5,9 +5,38 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
+    /**
+     * Generate Customer User ID
+     *
+     * Example:
+     * SRILX12345678
+     */
+    public function generateUserID(): string
+    {
+        do {
+            $letter = chr(random_int(65, 90));
+
+            $numbers = str_pad(
+                random_int(0, 99999999),
+                8,
+                '0',
+                STR_PAD_LEFT
+            );
+
+            $userId = "SRIL{$letter}{$numbers}";
+
+        } while (
+            Customer::where('userid', $userId)->exists()
+        );
+
+        return $userId;
+    }
+
+
     /**
      * Login page
      */
@@ -62,7 +91,10 @@ class AuthController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Your account has been blocked. Please contact support.');
+                ->with(
+                    'error',
+                    'Your account has been blocked. Please contact support.'
+                );
         }
 
 
@@ -79,12 +111,6 @@ class AuthController extends Controller
         ]);
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | SESSION
-        |--------------------------------------------------------------------------
-        */
-
         session([
             'otp_mobile' => $mobile,
             'otp_customer_id' => $customer->id,
@@ -94,11 +120,8 @@ class AuthController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | DEVELOPMENT
+        | DEVELOPMENT OTP
         |--------------------------------------------------------------------------
-        |
-        | Later replace this with MSG91 / SMS provider.
-        |
         */
 
         session([
@@ -127,7 +150,18 @@ class AuthController extends Controller
     public function sendRegisterOtp(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+
+            'sponsor_user_id' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
             'mobile' => [
                 'required',
@@ -136,10 +170,20 @@ class AuthController extends Controller
                 'max:15',
             ],
 
-            'email' => 'nullable|email|max:255',
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+
         ]);
 
-        $mobile = preg_replace('/[^0-9]/', '', $request->mobile);
+
+        $mobile = preg_replace(
+            '/[^0-9]/',
+            '',
+            $request->mobile
+        );
 
 
         /*
@@ -157,7 +201,58 @@ class AuthController extends Controller
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Mobile number already registered. Please login.');
+                ->with(
+                    'error',
+                    'Mobile number already registered. Please login.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SPONSOR
+        |--------------------------------------------------------------------------
+        */
+
+        $sponsorUserId = trim(
+            $request->sponsor_user_id ?? ''
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK SPONSOR IF ENTERED
+        |--------------------------------------------------------------------------
+        */
+
+        $sponsor = null;
+
+        if (!empty($sponsorUserId)) {
+
+            $sponsor = Customer::where(
+                'userid',
+                $sponsorUserId
+            )->first();
+
+            if (!$sponsor) {
+
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'Invalid Sponsor User ID.'
+                    );
+            }
+
+            if ($sponsor->is_block === 'yes') {
+
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'This sponsor account is blocked.'
+                    );
+            }
         }
 
 
@@ -178,9 +273,21 @@ class AuthController extends Controller
 
         session([
             'register_name' => $request->name,
+
             'register_mobile' => $mobile,
+
             'register_email' => $request->email,
+
+            /*
+            |--------------------------------------------------------------------------
+            | Keep sponsor userid in session
+            |--------------------------------------------------------------------------
+            */
+
+            'register_sponsor_user_id' => $sponsorUserId ?: null,
+
             'register_otp' => $otp,
+
             'otp_type' => 'register',
         ]);
 
@@ -198,7 +305,10 @@ class AuthController extends Controller
 
         return redirect()
             ->route('verify.otp')
-            ->with('success', 'OTP sent successfully.');
+            ->with(
+                'success',
+                'OTP sent successfully.'
+            );
     }
 
 
@@ -207,14 +317,22 @@ class AuthController extends Controller
      */
     public function verifyOtp()
     {
-        if (!session('otp_mobile') && !session('register_mobile')) {
+        if (
+            !session('otp_mobile') &&
+            !session('register_mobile')
+        ) {
 
             return redirect()
                 ->route('login')
-                ->with('error', 'Please enter your mobile number first.');
+                ->with(
+                    'error',
+                    'Please enter your mobile number first.'
+                );
         }
 
-        return view('website.auth.verify-otp');
+        return view(
+            'website.auth.verify-otp'
+        );
     }
 
 
@@ -224,7 +342,10 @@ class AuthController extends Controller
     public function verifyOtpPost(Request $request)
     {
         $request->validate([
-            'otp' => 'required|digits:6',
+            'otp' => [
+                'required',
+                'digits:6',
+            ],
         ]);
 
 
@@ -244,27 +365,39 @@ class AuthController extends Controller
 
                 return redirect()
                     ->route('login')
-                    ->with('error', 'Customer account not found.');
+                    ->with(
+                        'error',
+                        'Customer account not found.'
+                    );
             }
 
 
             if ($customer->otp != $request->otp) {
 
                 return back()
-                    ->with('error', 'Invalid OTP. Please try again.');
+                    ->with(
+                        'error',
+                        'Invalid OTP. Please try again.'
+                    );
             }
 
 
             $customer->update([
                 'otp' => null,
+
                 'mobile_verified' => 'yes',
+
                 'mobile_verified_at' => now(),
+
                 'is_verify' => 'yes',
+
                 'account_status' => 'active',
             ]);
 
 
-            Auth::guard('web')->login($customer);
+            Auth::guard('web')->login(
+                $customer
+            );
 
 
             session()->forget([
@@ -277,7 +410,10 @@ class AuthController extends Controller
 
             return redirect()
                 ->route('home')
-                ->with('success', 'Login successful.');
+                ->with(
+                    'success',
+                    'Login successful.'
+                );
         }
 
 
@@ -289,10 +425,16 @@ class AuthController extends Controller
 
         if (session('otp_type') === 'register') {
 
-            if (session('register_otp') != $request->otp) {
+            if (
+                session('register_otp') !=
+                $request->otp
+            ) {
 
                 return back()
-                    ->with('error', 'Invalid OTP. Please try again.');
+                    ->with(
+                        'error',
+                        'Invalid OTP. Please try again.'
+                    );
             }
 
 
@@ -302,31 +444,147 @@ class AuthController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $customer = Customer::create([
-                'name' => session('register_name'),
+            DB::transaction(function () use (&$customer) {
 
-                'mobile' => session('register_mobile'),
+                /*
+                |--------------------------------------------------------------------------
+                | Generate User ID
+                |--------------------------------------------------------------------------
+                */
 
-                'email' => session('register_email'),
+                $userId = $this->generateUserID();
 
-                'otp' => null,
 
-                'mobile_verified' => 'yes',
+                /*
+                |--------------------------------------------------------------------------
+                | Sponsor
+                |--------------------------------------------------------------------------
+                */
 
-                'mobile_verified_at' => now(),
+                $sponsorUserId = session('register_sponsor_user_id');
 
-                'is_verify' => 'yes',
+                $sponsor = null;
 
-                'is_block' => 'no',
+                if (!empty($sponsorUserId)) {
 
-                'account_status' => 'active',
+                    $sponsor = Customer::where(
+                        'userid',
+                        $sponsorUserId
+                    )->first();
+                }
 
-                'kyc_status' => 'pending',
 
-                'wallet' => 0,
+                /*
+                |--------------------------------------------------------------------------
+                | ROOT CUSTOMER
+                |--------------------------------------------------------------------------
+                |
+                | If sponsor is empty, root user becomes sponsor.
+                |
+                */
 
-                'rewards' => 0,
-            ]);
+                $root = Customer::where(
+                    'userid',
+                    'SLM00000001'
+                )->first();
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | FINAL SPONSOR
+                |--------------------------------------------------------------------------
+                */
+
+                if ($sponsor) {
+
+                    $finalSponsorId = $sponsor->userid;
+                    $sponsorName = $sponsor->name;
+
+                } elseif ($root) {
+
+                    $finalSponsorId = $root->userid;
+                    $sponsorName = $root->name;
+
+                } else {
+
+                    throw new \Exception(
+                        'Root account was not found. Please contact administrator.'
+                    );
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | CREATE CUSTOMER ONLY
+                |--------------------------------------------------------------------------
+                |
+                | DO NOT CREATE TREE RECORD HERE.
+                |
+                */
+
+                $customer = Customer::create([
+
+                    'userid' => $userId,
+
+                    'name' => session('register_name'),
+
+                    'old_name' => null,
+
+                    'mobile' => session('register_mobile'),
+
+                    'email' => session('register_email'),
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Sponsor
+                    |--------------------------------------------------------------------------
+                    */
+
+                    'sponsor_id' => $finalSponsorId,
+
+                    'sponsor_name' => $sponsorName,
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Wallet / Rewards
+                    |--------------------------------------------------------------------------
+                    */
+
+                    'wallet' => 0,
+
+                    'bonus' => 0,
+
+                    'rewards' => 0,
+
+                    'otp' => null,
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Account
+                    |--------------------------------------------------------------------------
+                    */
+
+                    'activation' => 'yes',
+
+                    'kyc_status' => 'pending',
+
+                    'mobile_verified' => 'yes',
+
+                    'email_verified' => 'no',
+
+                    'mobile_verified_at' => now(),
+
+                    'email_verified_at' => null,
+
+                    'is_verify' => 'yes',
+
+                    'is_block' => 'no',
+
+                    'is_deleted' => 'no',
+
+                    'account_status' => 'active',
+                ]);
+            });
 
 
             /*
@@ -335,15 +593,31 @@ class AuthController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            Auth::guard('web')->login($customer);
+            Auth::guard('web')->login(
+                $customer
+            );
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | CLEAR SESSION
+            |--------------------------------------------------------------------------
+            */
 
             session()->forget([
+
                 'register_name',
+
                 'register_mobile',
+
                 'register_email',
+
+                'register_sponsor_user_id',
+
                 'register_otp',
+
                 'otp_type',
+
                 'development_otp',
             ]);
 
@@ -352,16 +626,19 @@ class AuthController extends Controller
                 ->route('home')
                 ->with(
                     'success',
-                    'Registration completed successfully.'
+                    'Registration completed successfully. Your User ID is ' .
+                    $customer->userid
                 );
         }
 
 
         return redirect()
             ->route('login')
-            ->with('error', 'Invalid authentication session.');
+            ->with(
+                'error',
+                'Invalid authentication session.'
+            );
     }
-
 
     /**
      * Logout
@@ -376,6 +653,9 @@ class AuthController extends Controller
 
         return redirect()
             ->route('home')
-            ->with('success', 'Logged out successfully.');
+            ->with(
+                'success',
+                'Logged out successfully.'
+            );
     }
 }
