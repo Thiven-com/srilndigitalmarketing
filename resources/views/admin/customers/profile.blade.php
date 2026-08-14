@@ -30,9 +30,9 @@
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         Edit Profile
                     </button>
-                    <button class="btn btn-dark ms-2" data-bs-toggle="modal" data-bs-target="#updateSponsorModal">
+                    {{-- <button class="btn btn-dark ms-2" data-bs-toggle="modal" data-bs-target="#updateSponsorModal">
                         Update Sponsor ID
-                    </button>
+                    </button> --}}
                 </div>
             </div>
         </div>

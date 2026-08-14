@@ -14,10 +14,9 @@
                 {{ $node['userId'] ?? '-' }}
             </div>
 
-            {{-- <div class="customer-id">
-                Customer ID:
-                {{ $node['customer_id'] ?? '-' }}
-            </div> --}}
+            <div class="customer-id">
+                {{ $node['customer_name'] ?? '-' }}
+            </div>
 
             @if(!empty($node['placedunder_id']))
 

@@ -25,25 +25,32 @@
                                                 <ul>
                                                         <li
                                                                 class="{{ Request::routeIs('admin.customers.all') ? 'active' : '' }}">
-                                                                <a href="{{route('admin.customers.all')}}"><i
-                                                                                class="ti ti-user fs-16 me-2"></i><span>Customers</span></a>
-                                                        </li>
-                                                        <li
-                                                                class="{{ Request::routeIs('packages.all') ? 'active' : '' }}">
-                                                                <a href="{{route('packages.all')}}"><i
-                                                                                class="ti ti-package fs-16 me-2"></i><span>Packages</span></a>
-                                                        </li>
-                                                        <li
-                                                                class="{{ Request::routeIs('customer-packages') ? 'active' : '' }}">
-                                                                <a href="{{route('admin.customer-packages.index')}}"><i
-                                                                                class="ti ti-package fs-16 me-2"></i><span>Customer Packages</span></a>
-                                                        </li>
-                                                        <li
-                                                                class="{{ Request::routeIs('admin.trees.index') ? 'active' : '' }}">
-                                                                <a href="{{route('admin.trees.index')}}"><i
-                                                                                class="ti ti-package fs-16 me-2"></i><span>Trees</span></a>
+                                                                <a href="{{ route('admin.customers.all') }}">
+                                                                        <i class="ti ti-users fs-16 me-2"></i>
+                                                                        <span>Customers</span>
+                                                                </a>
                                                         </li>
 
+                                                        <li class="{{ Request::routeIs('packages.all') ? 'active' : '' }}">
+                                                                <a href="{{ route('packages.all') }}">
+                                                                        <i class="ti ti-box fs-16 me-2"></i>
+                                                                        <span>Packages</span>
+                                                                </a>
+                                                        </li>
+
+                                                        <li class="{{ Request::routeIs('customer-packages') ? 'active' : '' }}">
+                                                                <a href="{{ route('admin.customer-packages.index') }}">
+                                                                        <i class="ti ti-shopping-cart fs-16 me-2"></i>
+                                                                        <span>Purchases</span>
+                                                                </a>
+                                                        </li>
+
+                                                        <li class="{{ Request::routeIs('admin.trees.index') ? 'active' : '' }}">
+                                                                <a href="{{ route('admin.trees.index') }}">
+                                                                        <i class="ti ti-sitemap fs-16 me-2"></i>
+                                                                        <span>Genealogy</span>
+                                                                </a>
+                                                        </li>
                                                 </ul>
                                         </li>
                                         <li class="submenu-open">

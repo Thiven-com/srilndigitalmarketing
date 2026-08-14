@@ -189,6 +189,8 @@ class TreeController extends Controller
 
             'customer_id' =>
                 $node->customer_id,
+            'customer_name' =>
+                $node->customer->name ?? '',
 
             'userId' =>
                 $node->userId,
