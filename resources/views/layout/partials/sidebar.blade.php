@@ -40,8 +40,8 @@
 
                                                         <li class="{{ Request::routeIs('customer-packages') ? 'active' : '' }}">
                                                                 <a href="{{ route('admin.customer-packages.index') }}">
-                                                                        <i class="ti ti-shopping-cart fs-16 me-2"></i>
-                                                                        <span>Purchases</span>
+                                                                        <i class="ti ti-credit-card fs-16 me-2"></i>
+                                                                        <span>Subscriptions</span>
                                                                 </a>
                                                         </li>
 
