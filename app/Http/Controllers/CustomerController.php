@@ -85,6 +85,20 @@ class CustomerController extends Controller
         );
     }
 
+     public function bank()
+    {
+        $user = auth()->user();
+
+        $kyc = Kyc::where('user_id', $user->id)
+            ->where('user_role', 'customer')
+            ->first();
+
+        return view(
+            'website.customer.bank',
+            compact('user', 'kyc')
+        );
+    }
+
 
 
     /*

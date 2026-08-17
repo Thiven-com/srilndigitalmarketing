@@ -267,6 +267,13 @@
                                     KYC Verification
 
                                 </a>
+                                <a href="{{ route('customer.bank') }}" class="back-dashboard-btn">
+
+                                    <i class="bi bi-shield-check"></i>
+
+                                    Bank Verification
+
+                                </a>
 
 
                             </div>

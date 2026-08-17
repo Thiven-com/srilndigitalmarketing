@@ -8,12 +8,32 @@ use Illuminate\Http\Request;
 
 class RewardHistoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rewards = Reward::with('customer')
-            ->latest()
-            ->paginate(10);
+        $query = Reward::with('customer')->latest();
 
-        return view('admin.rewordhistory.index', compact('rewards'));
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhere('source_type', 'like', "%{$search}%")
+                    ->orWhere('source_id', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($customer) use ($search) {
+
+                        $customer->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('mobile', 'like', "%{$search}%");
+
+                    });
+
+            });
+        }
+
+        $rewards = $query->paginate(10)->withQueryString();
+
+        return view('admin.reward.index', compact('rewards'));
     }
 }

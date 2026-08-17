@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\BankAccountController;
+use App\Http\Controllers\CustomerApp\KycController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RewardController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +41,8 @@ Route::middleware('auth')->prefix('customer')->group(function () {
         ->name('customer.profile.update');
     Route::get('/kyc', [CustomerController::class, 'kyc'])
         ->name('customer.kyc');
+    Route::get('/bank', [CustomerController::class, 'bank'])
+        ->name('customer.bank');
 
     Route::post('/kyc/aadhaar/verify', [CustomerController::class, 'verifyAadhaar'])
         ->name('customer.kyc.aadhaar.verify');

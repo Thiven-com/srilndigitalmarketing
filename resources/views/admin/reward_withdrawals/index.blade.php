@@ -721,7 +721,7 @@
 
 
                                             {{-- APPROVED --}}
-                                            @if($withdrawal->status === 'approved')
+                                            {{-- @if($withdrawal->status === 'approved')
 
                                                 <a
                                                     href="{{ route(
@@ -735,7 +735,7 @@
 
                                                 </a>
 
-                                            @endif
+                                            @endif --}}
 
 
                                         </div>

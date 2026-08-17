@@ -100,6 +100,12 @@
                                                                         <span>Reword History</span>
                                                                 </a>
                                                         </li>
+                                                        <li class="{{ Request::routeIs('admin.reward-withdrawals.index') ? 'active' : '' }}">
+                                                                <a href="{{ route('admin.reward-withdrawals.index') }}">
+                                                                        <i class="ti ti-wallet-off fs-16 me-2"></i>
+                                                                        <span>Reword Withdraw</span>
+                                                                </a>
+                                                        </li>
                                                 </ul>
                                         </li>
                                         <li class="submenu-open">
