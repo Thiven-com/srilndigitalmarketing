@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\Customer;
+use App\Models\CustomerPackage;
 use App\Models\CustomerSubscription;
 use App\Models\Package;
 use App\Models\Payment;
@@ -21,7 +22,20 @@ class DashboardController extends Controller
     {
         $totalPackages = Package::count();
         $totalCustomers = Customer::count();
-        return view('admin.auth.dash', compact('totalCustomers', 'totalPackages'));
+        $adminCommission = CustomerPackage::query()
+            ->where('payment_status', 'approved')
+            ->join(
+                'package_components',
+                'package_components.package_id',
+                '=',
+                'customer_packages.package_id'
+            )
+            ->where(
+                'package_components.component_type',
+                'company'
+            )
+            ->sum('package_components.amount');
+        return view('admin.auth.dash', compact('totalCustomers', 'totalPackages','adminCommission'));
 
     }
     // public function index(Request $request)

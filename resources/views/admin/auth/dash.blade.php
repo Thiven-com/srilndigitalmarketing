@@ -280,8 +280,29 @@
             <!-- ================= STATS CARDS ================= -->
 
             <div class="row g-4 mb-4">
+                <div class="col-xl-4 col-md-6">
 
-                <div class="col-xl-6 col-md-6">
+                    <div class="dashboard-card">
+
+                        <div class="card-icon bg-warning-gradient">
+                            <i class="ti ti-cash"></i>
+                        </div>
+
+                        <h6>Admin Commission</h6>
+
+                        <h3>
+                            ₹{{ number_format($adminCommission ?? 0, 2) }}
+                        </h3>
+
+                        <p>
+                            Total company commission generated from approved package purchases.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="col-xl-4 col-md-6">
 
                     <div class="dashboard-card">
 
@@ -299,7 +320,7 @@
 
                 </div>
 
-                <div class="col-xl-6 col-md-6">
+                <div class="col-xl-4 col-md-6">
 
                     <div class="dashboard-card">
 
