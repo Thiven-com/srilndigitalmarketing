@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\GiftCardProductController;
 use App\Http\Controllers\Admin\GiftTypeController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\RewardHistoryController;
 use App\Http\Controllers\Admin\TreeController;
 use App\Http\Controllers\Admin\WalletController;
 use App\Http\Controllers\Admin\WalletRechargeController;
@@ -31,6 +32,9 @@ Route::group(['middleware' => 'admin'], function () {
         ->name('admin.change.password');
     Route::post('update-password', [DashboardController::class, 'updatePassword'])
         ->name('admin.update.password');
+
+    Route::get('/reward-history', [RewardHistoryController::class, 'index'])
+        ->name('admin.rewardhistory.index');
 
 
     Route::get('/customers', [CustomerController::class, 'index'])
@@ -86,6 +90,7 @@ Route::group(['middleware' => 'admin'], function () {
         '/trees',
         [TreeController::class, 'index']
     )->name('admin.trees.index');
+
 });
 Route::get('products/get-attribute-values/{unitId}', [ProductController::class, 'getAttributeValues'])->name('products.getAttributeValues');
 
