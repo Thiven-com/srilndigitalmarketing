@@ -3,13 +3,13 @@
 namespace App\Services\Tree;
 
 use App\Models\Customer;
-use App\Models\PackageLevel;
+use App\Models\PackageComponent;
 use App\Models\Reward;
 use App\Models\CustomerPackage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class BonusService
+class BonusService1
 {
     /**
      * Distribute package level bonus.
@@ -38,53 +38,52 @@ class BonusService
             |--------------------------------------------------------------------------
             */
 
-            $levels = PackageLevel::where(
+            $components = PackageComponent::where(
                 'package_id',
                 $packageId
             )
                 ->where('status', 1)
+                ->whereNotNull('level')
                 ->whereBetween('level', [1, 6])
                 ->orderBy('level')
                 ->get();
 
-
-            if ($levels->isEmpty()) {
-
-                Log::info(
-                    'No package level bonus configuration found.',
-                    [
-                        'package_id' => $packageId,
-                        'customer_id' => $customer->id,
-                    ]
-                );
+            if ($components->isEmpty()) {
+                Log::info('No package level bonus configuration found.', [
+                    'package_id' => $packageId,
+                    'customer_id' => $customer->id,
+                ]);
 
                 return;
             }
 
-
             /*
             |--------------------------------------------------------------------------
-            | Level 1 starts from SPONSOR
+            | IMPORTANT
+            |--------------------------------------------------------------------------
+            | Level 1 starts from SPONSOR.
+            |
+            | Never start with:
+            |
+            | $customer
+            |
+            | because customer must not get self bonus.
             |--------------------------------------------------------------------------
             */
 
             if (empty($customer->sponsor_id)) {
 
-                Log::info(
-                    'No sponsor found. No level bonus distributed.',
-                    [
-                        'customer_id' => $customer->id,
-                        'userid' => $customer->userid,
-                    ]
-                );
+                Log::info('No sponsor found. No level bonus distributed.', [
+                    'customer_id' => $customer->id,
+                    'userid' => $customer->userid,
+                ]);
 
                 return;
             }
 
-
             /*
             |--------------------------------------------------------------------------
-            | Get Level 1 Sponsor
+            | Get Level 1 Upline
             |--------------------------------------------------------------------------
             */
 
@@ -93,131 +92,158 @@ class BonusService
                 $customer->sponsor_id
             )->first();
 
-
             if (!$upline) {
 
-                Log::warning(
-                    'Sponsor not found for package bonus.',
-                    [
-                        'customer_id' => $customer->id,
-                        'sponsor_id' => $customer->sponsor_id,
-                    ]
-                );
+                Log::warning('Sponsor not found for package bonus.', [
+                    'customer_id' => $customer->id,
+                    'sponsor_id' => $customer->sponsor_id,
+                ]);
 
                 return;
             }
 
-
             /*
             |--------------------------------------------------------------------------
-            | Level 1 - Level 6
+            | Distribute Level 1 - Level 6
             |--------------------------------------------------------------------------
             */
 
-            foreach ($levels as $level) {
+            foreach ($components as $component) {
 
                 if (!$upline) {
                     break;
                 }
 
-
                 /*
                 |--------------------------------------------------------------------------
-                | Never reward purchasing customer
+                | Safety: Never reward purchasing customer
                 |--------------------------------------------------------------------------
                 */
 
-                if (
-                    (int) $upline->id ===
-                    (int) $customer->id
-                ) {
+                if ((int) $upline->id === (int) $customer->id) {
 
                     Log::warning(
                         'Self bonus prevented.',
                         [
                             'customer_id' => $customer->id,
                             'userid' => $customer->userid,
-                            'level' => $level->level,
+                            'level' => $component->level,
                         ]
                     );
 
-                    $upline =
-                        $this->getNextSponsor($upline);
+                    $upline = $this->getNextSponsor($upline);
 
                     continue;
                 }
 
-
                 /*
                 |--------------------------------------------------------------------------
-                | Calculate level bonus
+                | Calculate bonus
                 |--------------------------------------------------------------------------
                 */
 
-                $amount =
-                    $this->calculateAmount(
-                        $level,
-                        $packageAmount
-                    );
-
+                $amount = $this->calculateAmount(
+                    $component,
+                    $packageAmount
+                );
 
                 if ($amount <= 0) {
 
-                    $upline =
-                        $this->getNextSponsor($upline);
+                    $upline = $this->getNextSponsor($upline);
 
                     continue;
                 }
 
-
                 /*
                 |--------------------------------------------------------------------------
-                | Credit Reward
+                | Credit reward
                 |--------------------------------------------------------------------------
                 */
 
                 $this->creditReward(
                     customer: $upline,
                     amount: $amount,
-                    level: $level,
+                    component: $component,
                     packageCustomer: $customer,
                     sourceType: $sourceType,
                     sourceId: $sourceId
                 );
 
-
                 /*
                 |--------------------------------------------------------------------------
-                | Move to next sponsor
+                | Move to next upline
                 |--------------------------------------------------------------------------
                 */
 
-                $upline =
-                    $this->getNextSponsor($upline);
+                $upline = $this->getNextSponsor($upline);
+            }
+
+            /*
+|--------------------------------------------------------------------------
+| Direct Bonus
+|--------------------------------------------------------------------------
+| Direct bonus goes ONLY to the immediate sponsor.
+| Customer himself will never receive it.
+*/
+
+            $directComponent = PackageComponent::where('package_id', $packageId)
+                ->where('component_type', 'direct')
+                ->where('code', 'DIRECT')
+                ->where('status', 1)
+                ->first();
+
+            if ($directComponent && !empty($customer->sponsor_id)) {
+
+                $directSponsor = Customer::where(
+                    'userid',
+                    $customer->sponsor_id
+                )->first();
+
+                if (
+                    $directSponsor &&
+                    (int) $directSponsor->id !== (int) $customer->id
+                ) {
+
+                    $directAmount = $this->calculateAmount(
+                        $directComponent,
+                        $packageAmount
+                    );
+
+                    if ($directAmount > 0) {
+
+                        $this->creditReward(
+                            customer: $directSponsor,
+                            amount: $directAmount,
+                            component: $directComponent,
+                            packageCustomer: $customer,
+                            sourceType: $sourceType,
+                            sourceId: $sourceId
+                        );
+                    }
+                }
             }
         });
     }
 
 
     /**
-     * Calculate package level bonus.
+     * Calculate bonus amount from package_components.
      */
     protected function calculateAmount(
-        PackageLevel $level,
+        PackageComponent $component,
         float $packageAmount
     ): float {
 
         /*
         |--------------------------------------------------------------------------
-        | Fixed
+        | Fixed amount
         |--------------------------------------------------------------------------
         */
 
-        if ($level->calculation_type === 'fixed') {
+        if ($component->calculation_type === 'fixed') {
 
-            return (float) $level->amount;
+            return (float) $component->amount;
         }
-
 
         /*
         |--------------------------------------------------------------------------
@@ -225,24 +251,26 @@ class BonusService
         |--------------------------------------------------------------------------
         */
 
-        if ($level->calculation_type === 'percentage') {
+        if ($component->calculation_type === 'percentage') {
 
             return round(
-                (
-                    $packageAmount *
-                    (float) $level->percentage
-                ) / 100,
+                ($packageAmount * (float) $component->percentage) / 100,
                 2
             );
         }
-
 
         return 0;
     }
 
 
     /**
-     * Get next sponsor.
+     * Get next upline.
+     *
+     * Current sponsor
+     *      ↓
+     * sponsor's sponsor
+     *      ↓
+     * next sponsor
      */
     protected function getNextSponsor(
         Customer $customer
@@ -252,20 +280,15 @@ class BonusService
             return null;
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Prevent infinite loop
+        | Never return the same customer
         |--------------------------------------------------------------------------
         */
 
-        if (
-            (string) $customer->sponsor_id ===
-            (string) $customer->userid
-        ) {
+        if ((string) $customer->sponsor_id === (string) $customer->userid) {
             return null;
         }
-
 
         return Customer::where(
             'userid',
@@ -276,11 +299,18 @@ class BonusService
 
     /**
      * Credit reward.
+     *
+     * IMPORTANT:
+     * No wallet update.
+     *
+     * Only customers.rewards is updated.
+     *
+     * Reward history is also stored in rewards table.
      */
     protected function creditReward(
         Customer $customer,
         float $amount,
-        PackageLevel $level,
+        PackageComponent $component,
         Customer $packageCustomer,
         string $sourceType,
         ?int $sourceId = null
@@ -290,192 +320,137 @@ class BonusService
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
         | Prevent self reward
         |--------------------------------------------------------------------------
         */
 
-        if (
-            (int) $customer->id ===
-            (int) $packageCustomer->id
-        ) {
+        if ((int) $customer->id === (int) $packageCustomer->id) {
 
             Log::warning(
                 'Self reward blocked.',
                 [
-                    'customer_id' =>
-                        $customer->id,
-
-                    'package_customer_id' =>
-                        $packageCustomer->id,
-
-                    'level' =>
-                        $level->level,
+                    'customer_id' => $customer->id,
+                    'package_customer_id' => $packageCustomer->id,
+                    'level' => $component->level,
                 ]
             );
 
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Opening Balance
+        | Opening reward balance
         |--------------------------------------------------------------------------
         */
 
-        $openingBalance =
-            (float) ($customer->rewards ?? 0);
-
+        $openingBalance = (float) $customer->rewards;
 
         /*
         |--------------------------------------------------------------------------
-        | Closing Balance
+        | Closing reward balance
         |--------------------------------------------------------------------------
         */
 
-        $closingBalance =
-            $openingBalance + $amount;
-
+        $closingBalance = $openingBalance + $amount;
 
         /*
         |--------------------------------------------------------------------------
-        | Update Customer Rewards
+        | Update ONLY rewards
         |--------------------------------------------------------------------------
         */
 
-        $customer->rewards =
-            $closingBalance;
+        $customer->rewards = $closingBalance;
 
         $customer->save();
 
-
         /*
         |--------------------------------------------------------------------------
-        | Reward History
+        | Store Reward History
         |--------------------------------------------------------------------------
         */
 
         Reward::create([
+            'user_id' => $customer->id,
 
-            'user_id' =>
-                $customer->id,
+            'role' => 'customer',
 
-            'role' =>
-                'customer',
+            'activity_id' => $component->id,
 
-            'activity_id' =>
-                $level->id,
+            'source_type' => $sourceType,
 
-            'source_type' =>
-                $sourceType,
+            'source_id' => $sourceId,
 
-            'source_id' =>
-                $sourceId,
+            'reward_type' => 'package_bonus',
 
-            'reward_type' =>
-                'package_bonus',
+            'transaction_type' => 'credit',
 
-            'transaction_type' =>
-                'credit',
+            'amount' => $amount,
 
-            'amount' =>
-                $amount,
+            'opening_balance' => $openingBalance,
 
-            'opening_balance' =>
-                $openingBalance,
-
-            'closing_balance' =>
-                $closingBalance,
+            'closing_balance' => $closingBalance,
 
             'description' =>
-                'Level ' .
-                $level->level .
+                'Level ' . $component->level .
                 ' package bonus received from ' .
-                (
-                    $packageCustomer->name ??
-                    $packageCustomer->userid
-                ),
+                ($packageCustomer->name ?? $packageCustomer->userid),
 
-            'status' =>
-                'completed',
+            'status' => 'completed',
 
-            'is_reverted' =>
-                0,
+            'is_reverted' => 0,
 
-            'meta_data' =>
-                json_encode([
-
-                    'package_id' =>
-                        $level->package_id,
-
-                    'package_level_id' =>
-                        $level->id,
-
-                    'level' =>
-                        $level->level,
-
-                    'package_customer_id' =>
-                        $packageCustomer->id,
-
-                    'package_customer_userid' =>
-                        $packageCustomer->userid,
-
-                    'amount' =>
-                        $amount,
-                ]),
+            'meta_data' => json_encode([
+                'package_id' => $component->package_id,
+                'package_component_id' => $component->id,
+                'level' => $component->level,
+                'package_customer_id' => $packageCustomer->id,
+                'package_customer_userid' => $packageCustomer->userid,
+                'amount' => $amount,
+            ]),
         ]);
 
-
-        Log::info(
-            'Package level bonus credited.',
-            [
-                'receiver_id' =>
-                    $customer->id,
-
-                'receiver_userid' =>
-                    $customer->userid,
-
-                'from_customer_id' =>
-                    $packageCustomer->id,
-
-                'from_customer_userid' =>
-                    $packageCustomer->userid,
-
-                'level' =>
-                    $level->level,
-
-                'amount' =>
-                    $amount,
-            ]
-        );
+        Log::info('Package bonus credited.', [
+            'receiver_id' => $customer->id,
+            'receiver_userid' => $customer->userid,
+            'from_customer_id' => $packageCustomer->id,
+            'from_customer_userid' => $packageCustomer->userid,
+            'level' => $component->level,
+            'amount' => $amount,
+        ]);
     }
 
 
     /**
      * Compatibility method.
+     *
+     * If your controller currently calls:
+     *
+     * $this->bonusService->distribute(
+     *     $customerPackage,
+     *     $treeModel
+     * );
+     *
+     * this method will continue to work.
      */
     public function distribute(
         CustomerPackage $customerPackage,
         string $treeModel
     ): void {
 
-        $customer =
-            Customer::find(
-                $customerPackage->customer_id
-            );
-
+        $customer = Customer::find(
+            $customerPackage->customer_id
+        );
 
         if (!$customer) {
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Package Amount
+        | Get package amount
         |--------------------------------------------------------------------------
         */
 
@@ -483,29 +458,25 @@ class BonusService
             (float) (
                 $customerPackage->amount
                 ?? $customerPackage->package_amount
-                ?? $customerPackage->total_amount
                 ?? 0
             );
 
-
         /*
         |--------------------------------------------------------------------------
-        | Package ID
+        | Get package ID
         |--------------------------------------------------------------------------
         */
 
         $packageId =
             (int) $customerPackage->package_id;
 
-
         if (!$packageId) {
             return;
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | Distribute
+        | Distribute bonus
         |--------------------------------------------------------------------------
         */
 
