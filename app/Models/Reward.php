@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Reward extends Model
 {
@@ -34,4 +35,13 @@ class Reward extends Model
         'closing_balance' => 'decimal:2',
         'meta_data' => 'array',
     ];
+
+    /**
+     * Reward belongs to a customer.
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'user_id');
+    }
+
 }

@@ -34,6 +34,6 @@ class RewardHistoryController extends Controller
 
         $rewards = $query->paginate(10)->withQueryString();
 
-        return view('admin.reward.index', compact('rewards'));
+        return view('admin.rewordhistory.index', compact('rewards'));
     }
 }
