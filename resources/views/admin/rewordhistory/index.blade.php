@@ -67,7 +67,7 @@
                                     <th>S.No</th>
                                     <th>User</th>
                                     <th>Role</th>
-                                    <th>Source</th>
+                                    {{-- <th>Source</th> --}}
                                     <th>Reward Type</th>
                                     <th>Transaction</th>
                                     <th>Amount</th>
@@ -93,11 +93,11 @@
 
                                         {{-- User --}}
                                         <td>
-                                            @if($reward->user)
+                                            @if($reward->customer)
 
                                                 <div class="d-flex align-items-center">
 
-                                                    @if($reward->user->profile_pic)
+                                                    @if($reward->customer->profile_pic)
                                                         <img src="{{ asset($reward->user->profile_pic) }}" alt="profile"
                                                             class="img-fluid rounded-circle border me-2"
                                                             style="width:40px;height:40px;object-fit:cover;">
@@ -109,11 +109,11 @@
 
                                                     <div>
                                                         <h6 class="mb-0">
-                                                            {{ $reward->user->name ?? '-' }}
+                                                            {{ $reward->customer->name ?? '-' }}
                                                         </h6>
 
                                                         <small class="text-muted">
-                                                            {{ $reward->user->mobile ?? $reward->user->email ?? '-' }}
+                                                            {{ $reward->customer->mobile ?? $reward->customer->email ?? '-' }}
                                                         </small>
                                                     </div>
 
@@ -136,20 +136,20 @@
                                         </td>
 
                                         {{-- Source --}}
-                                        <td>
+                                        {{-- <td>
 
                                             <span class="fw-semibold">
                                                 {{ ucfirst(str_replace('_', ' ', $reward->source_type ?? '-')) }}
                                             </span>
 
                                             @if($reward->source_id)
-                                                <br>
-                                                <small class="text-muted">
-                                                    ID: {{ $reward->source_id }}
-                                                </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                ID: {{ $reward->source_id }}
+                                            </small>
                                             @endif
 
-                                        </td>
+                                        </td> --}}
 
                                         {{-- Reward Type --}}
                                         <td>
@@ -174,7 +174,7 @@
                                             @else
 
                                                 <span class="badge bg-secondary">
-                                                    {{ ucfirst($reward->reward_type ?? '-') }}
+                                                    {{ ucfirst(str_replace('_', ' ', $reward->reward_type) ?? '-') }}
                                                 </span>
 
                                             @endif
@@ -200,7 +200,7 @@
                                             @else
 
                                                 <span class="text-muted">
-                                                    {{ ucfirst($reward->transaction_type ?? '-') }}
+                                                    {{ ucfirst(str_replace('_', ' ', $reward->transaction_type) ?? '-') }}
                                                 </span>
 
                                             @endif
