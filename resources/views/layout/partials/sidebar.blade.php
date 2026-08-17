@@ -23,13 +23,55 @@
                                         <li class="submenu-open">
                                                 <h6 class="submenu-hdr">HRM</h6>
                                                 <ul>
-                                                        <li
-                                                                class="{{ Request::routeIs('admin.customers.all') ? 'active' : '' }}">
-                                                                <a href="{{ route('admin.customers.all') }}">
+                                                        {{-- <li class="{{ Request::routeIs('admin.customers.*') ? 'active' : '' }}">
+                                                                <a href="javascript:void(0);" class="has-arrow">
                                                                         <i class="ti ti-users fs-16 me-2"></i>
-                                                                        <span>Customers</span>
+                                                                        <span>Members</span>
                                                                 </a>
-                                                        </li>
+
+                                                                <ul class="sub-menu">
+                                                                        <li
+                                                                                class="{{ Request::routeIs('admin.customers.all') ? 'active' : '' }}">
+                                                                                <a href="{{ route('admin.customers.all') }}">
+                                                                                        All Members
+                                                                                </a>
+                                                                        </li>
+
+                                                                        <li
+                                                                                class="#">
+                                                                                <a href="#">
+                                                                                        New Registrations
+                                                                                </a>
+                                                                        </li>
+
+                                                                        <li
+                                                                                class="#">
+                                                                                <a
+                                                                                        href="#">
+                                                                                        Pending Approvals
+                                                                                </a>
+                                                                        </li>
+                                                                </ul>
+                                                        </li> --}}
+                                                        <li class="submenu">
+                                                        <a href="javascript:void(0);"
+                                                                class="{{ Request::is('admin/customers') ? 'active subdrop' : '' }}"><i
+                                                                        class="ti ti-article fs-16 me-2"></i><span>Members</span><span
+                                                                        class="menu-arrow"></span></a>
+
+                                                        <ul>
+                                                                <li
+                                                                        class="{{ Request::routeIs('admin.customers.all') ? 'active' : '' }}">
+                                                                        <a href="{{ route('admin.customers.all') }}"><i
+                                                                                        class="ti ti-box fs-16 me-2"></i><span>All Members</span></a>
+                                                                </li>
+                                                                <li
+                                                                        class="{{ Request::routeIs('admin.customers.all') ? 'active' : '' }}">
+                                                                        <a href="{{ route('admin.customers.all',['type' => 'new']) }}"><i
+                                                                                        class="ti ti-list-details fs-16 me-2"></i><span>New Registrations</span></a>
+                                                                </li>
+                                                        </ul>
+                                                </li>
 
                                                         <li class="{{ Request::routeIs('packages.all') ? 'active' : '' }}">
                                                                 <a href="{{ route('packages.all') }}">

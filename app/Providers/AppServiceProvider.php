@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Customer;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        View::composer('layout.partials.sidebar', function ($view) {
+            $todayRegistrations = Customer::whereDate('created_at', today())->count();
+
+            $view->with('todayRegistrations', $todayRegistrations);
+        });
     }
 }
