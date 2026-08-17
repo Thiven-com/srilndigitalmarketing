@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\FiveWayDirectReferral;
@@ -85,17 +86,17 @@ class CustomerController extends Controller
         );
     }
 
-     public function bank()
+    public function bank()
     {
         $user = auth()->user();
 
-        $kyc = Kyc::where('user_id', $user->id)
-            ->where('user_role', 'customer')
+        $bankAccount = BankAccount::where('user_id', $user->id)
+            // ->where('user_role', 'customer')
             ->first();
 
         return view(
             'website.customer.bank',
-            compact('user', 'kyc')
+            compact('user', 'bankAccount')
         );
     }
 
@@ -1521,5 +1522,153 @@ class CustomerController extends Controller
                 'message' => 'UPI verification failed.',
             ], 422);
         }
+    }
+
+    public function storeBank(Request $request)
+    {
+        $customer = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+
+            'account_number' => [
+                'required',
+                'numeric',
+                'digits_between:8,20',
+                'confirmed',
+            ],
+
+            'account_number_confirmation' => [
+                'required',
+            ],
+
+            'ifsc_code' => [
+                'required',
+                'string',
+                'max:11',
+            ],
+
+            'account_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'bank_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'branch_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'account_type' => [
+                'required',
+                'in:savings,current',
+            ],
+
+        ]);
+
+        if ($validator->fails()) {
+
+            return back()
+                ->withErrors($validator)
+                ->with('error', $validator->errors()->first());
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save Bank Account
+        |--------------------------------------------------------------------------
+        */
+
+        $bankAccount = BankAccount::updateOrCreate(
+
+            [
+                'user_id' => $customer->id,
+            ],
+
+            [
+                'account_number' => $request->account_number,
+
+                'ifsc_code' => strtoupper(
+                    $request->ifsc_code
+                ),
+
+                'account_name' =>
+                    $request->account_name,
+
+                'bank_name' =>
+                    $request->bank_name,
+
+                'branch_name' =>
+                    $request->branch_name,
+
+                'account_type' =>
+                    $request->account_type,
+
+                'bank_status' =>
+                    'approved',
+            ]
+
+        );
+
+        return redirect()
+            ->route('customer.bank')
+            ->with(
+                'success',
+                'Bank account saved and verified successfully.'
+            );
+    }
+    public function storeUpi(Request $request)
+    {
+        $customer = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+
+            'upi_id' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+        ]);
+
+        if ($validator->fails()) {
+
+            return back()
+                ->withErrors($validator)
+                ->with('error', $validator->errors()->first());
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Save UPI
+        |--------------------------------------------------------------------------
+        */
+
+        $bankAccount = BankAccount::firstOrCreate(
+            [
+                'user_id' => $customer->id,
+            ]
+        );
+
+        $bankAccount->upi_id =
+            $request->upi_id;
+
+        $bankAccount->upi_status =
+            'approved';
+
+        $bankAccount->save();
+
+        return redirect()
+            ->route('customer.bank')
+            ->with(
+                'success',
+                'UPI ID saved and verified successfully.'
+            );
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankAccount;
 use App\Models\Customer;
 use App\Models\Reward;
 use App\Models\RewardWithdrawal;
@@ -60,21 +61,21 @@ class RewardWithdrawalController extends Controller
                         'like',
                         "%{$search}%"
                     )
-                    ->orWhere(
-                        'userid',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'mobile',
-                        'like',
-                        "%{$search}%"
-                    )
-                    ->orWhere(
-                        'email',
-                        'like',
-                        "%{$search}%"
-                    );
+                        ->orWhere(
+                            'userid',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'mobile',
+                            'like',
+                            "%{$search}%"
+                        )
+                        ->orWhere(
+                            'email',
+                            'like',
+                            "%{$search}%"
+                        );
                 }
             );
         }
@@ -148,13 +149,17 @@ class RewardWithdrawalController extends Controller
 
 
         $customer = $withdrawal->customer;
-
+        $bankAccount = BankAccount::where(
+            'user_id',
+            $customer->id
+        )->first();
 
         return view(
             'admin.reward_withdrawals.show',
             compact(
                 'withdrawal',
-                'customer'
+                'customer',
+                'bankAccount'
             )
         );
     }
@@ -248,7 +253,7 @@ class RewardWithdrawalController extends Controller
 
                 $requestedAmount =
                     round(
-                        (float)
+                        (float) 
                         $withdrawal->requested_amount,
                         2
                     );
@@ -438,10 +443,7 @@ class RewardWithdrawalController extends Controller
 
 
         return DB::transaction(
-            function () use (
-                $request,
-                $id
-            ) {
+            function () use ($request, $id) {
 
                 /*
                 |--------------------------------------------------------------------------
@@ -548,10 +550,7 @@ class RewardWithdrawalController extends Controller
 
 
         return DB::transaction(
-            function () use (
-                $request,
-                $id
-            ) {
+            function () use ($request, $id) {
 
                 /*
                 |--------------------------------------------------------------------------
@@ -607,7 +606,7 @@ class RewardWithdrawalController extends Controller
 
                 $payableAmount =
                     round(
-                        (float)
+                        (float) 
                         $withdrawal->payable_amount,
                         2
                     );
@@ -621,7 +620,7 @@ class RewardWithdrawalController extends Controller
 
                 $settledAmount =
                     round(
-                        (float)
+                        (float) 
                         $request->settled_amount,
                         2
                     );

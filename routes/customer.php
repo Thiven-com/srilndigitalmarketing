@@ -59,6 +59,11 @@ Route::middleware('auth')->prefix('customer')->group(function () {
     Route::post('/kyc/upi/verify', [CustomerController::class, 'verifyUpi'])
         ->name('customer.kyc.upi.verify');
 
+    Route::post('/kyc/bank/store', [CustomerController::class, 'storeBank'])
+        ->name('customer.bank.store');
+
+    Route::post('/kyc/bank/upi/store', [CustomerController::class, 'storeUpi'])
+        ->name('customer.bank.upi.store');
 
 
     /*
