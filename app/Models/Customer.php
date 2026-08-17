@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Customer extends Authenticatable
 {
@@ -184,4 +185,8 @@ class Customer extends Authenticatable
 
         'longitude' => 'decimal:8',
     ];
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'user_id');
+    }
 }
