@@ -127,6 +127,9 @@ Route::middleware('auth')->prefix('customer')->group(function () {
     Route::get('/rewards', [CustomerController::class, 'rewards'])
         ->name('customer.rewards');
 
+    Route::get('/kyc', [CustomerController::class, 'kyc'])
+        ->name('customer.kyc');
+
 
     /*
     |--------------------------------------------------------------------------

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BankAccount;
 use App\Models\Customer;
+use App\Models\Kyc;
 use App\Models\Reward;
 use Illuminate\Http\Request;
 
@@ -30,6 +32,23 @@ class CustomerController extends Controller
         } elseif ($request->slug == 'rewards') {
             $rewards = Reward::where(['user_id' => $customer->id, 'role' => 'customer'])->orderBy('id', 'desc')->paginate(20)->withQueryString();
             return view('admin.customers.rewards', compact('customer', 'rewards'));
+        } elseif ($request->slug == 'kyc') {
+
+            // KYC details
+            $kyc = Kyc::where('user_id', $customer->id)
+                ->where('user_role', 'customer')
+                ->first();
+
+            $bankAccount = BankAccount::where('user_id', $customer->id)
+                ->where('user_role', 'customer')
+                ->first();
+
+            return view('admin.customers.kyc', compact(
+                'customer',
+                'bankAccount',
+                'kyc'
+            ));
+
         } else {
             return redirect(route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'profile']));
         }

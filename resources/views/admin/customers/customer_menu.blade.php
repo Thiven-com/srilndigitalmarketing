@@ -253,6 +253,12 @@
                                 <i class="ti ti-award me-1"></i> Rewards
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link @if(request('slug') == 'kyc') active @endif"
+                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'kyc']) }}">
+                                <i class="ti ti-shield-check me-1"></i> Kyc
+                            </a>
+                        </li>
 
                         {{-- <li class="nav-item">
                             <a class="nav-link @if(request('slug') == 'wallet') active @endif"
