@@ -9,6 +9,7 @@ use App\Models\CustomerPackage;
 use App\Models\CustomerSubscription;
 use App\Models\Package;
 use App\Models\Payment;
+use App\Models\Reward;
 use App\Models\Wallet;
 use App\Models\WalletRecharge;
 use Carbon\Carbon;
@@ -22,19 +23,22 @@ class DashboardController extends Controller
     {
         $totalPackages = Package::count();
         $totalCustomers = Customer::count();
-        $adminCommission = CustomerPackage::query()
-            ->where('payment_status', 'approved')
-            ->join(
-                'package_components',
-                'package_components.package_id',
-                '=',
-                'customer_packages.package_id'
-            )
-            ->where(
-                'package_components.component_type',
-                'company'
-            )
-            ->sum('package_components.amount');
+        // $adminCommission = CustomerPackage::query()
+        //     ->where('payment_status', 'approved')
+        //     ->join(
+        //         'package_components',
+        //         'package_components.package_id',
+        //         '=',
+        //         'customer_packages.package_id'
+        //     )
+        //     ->where(
+        //         'package_components.component_type',
+        //         'company'
+        //     )
+        //     ->sum('package_components.amount');
+
+        $rewardCount = Reward::where('reward_type','package_bonus')->count();
+        $adminCommission = $rewardCount * 150;
         return view('admin.auth.dash', compact('totalCustomers', 'totalPackages','adminCommission'));
 
     }
