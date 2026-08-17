@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\RewardController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -53,6 +54,7 @@ Route::middleware('auth')->prefix('customer')->group(function () {
 
     Route::post('/kyc/upi/verify', [CustomerController::class, 'verifyUpi'])
         ->name('customer.kyc.upi.verify');
+
 
 
     /*
@@ -145,5 +147,7 @@ Route::middleware('auth')->prefix('customer')->group(function () {
 
     Route::post('/logout', [CustomerController::class, 'logout'])
         ->name('customer.logout');
+
+    Route::post('/wallet/rewards/withdraw', [RewardController::class, 'requestRewardWithdrawal'])->name('customer.rewards.withdraw');
 
 });

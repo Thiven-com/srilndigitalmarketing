@@ -11,6 +11,7 @@ use App\Models\Package;
 use App\Models\PackageComponent;
 use App\Models\PackageLevel;
 use App\Models\Reward;
+use App\Models\RewardWithdrawal;
 use App\Models\ThreeWayDirectReferral;
 use App\Models\ThreeWayReferral;
 use App\Services\PlanApiService;
@@ -527,12 +528,15 @@ class CustomerController extends Controller
         )
             ->latest('id')
             ->get();
-
+        $withdrawals = RewardWithdrawal::where('customer_id', $customer->id)
+            ->latest('id')
+            ->get();
         return view(
             'website.customer.wallet',
             compact(
                 'customer',
-                'rewardHistory'
+                'rewardHistory',
+                'withdrawals'
             )
         );
     }
