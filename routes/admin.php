@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\GiftCardProductController;
 use App\Http\Controllers\Admin\GiftTypeController;
 use App\Http\Controllers\Admin\PackageController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\RewardWithdrawalController;
 use App\Http\Controllers\Admin\TreeController;
 use App\Http\Controllers\Admin\WalletController;
 use App\Http\Controllers\Admin\WalletRechargeController;
@@ -86,6 +87,31 @@ Route::group(['middleware' => 'admin'], function () {
         '/trees',
         [TreeController::class, 'index']
     )->name('admin.trees.index');
+
+    //Reward Withdrawl
+    Route::get(
+        '/reward-withdrawals',
+        [RewardWithdrawalController::class, 'index']
+    )->name('admin.reward-withdrawals.index');
+    Route::get(
+        '/reward-withdrawals/{id}',
+        [RewardWithdrawalController::class, 'show']
+    )->name('admin.reward-withdrawals.show');
+
+    Route::post(
+        '/reward-withdrawals/{id}/approve',
+        [RewardWithdrawalController::class, 'approve']
+    )->name('admin.reward-withdrawals.approve');
+
+
+    Route::post(
+        '/reward-withdrawals/{id}/reject',
+        [RewardWithdrawalController::class, 'reject']
+    )->name('admin.reward-withdrawals.reject');
+    Route::post(
+        '/reward-withdrawals/{id}/settle',
+        [RewardWithdrawalController::class, 'settle']
+    )->name('admin.reward-withdrawals.settle');
 });
 Route::get('products/get-attribute-values/{unitId}', [ProductController::class, 'getAttributeValues'])->name('products.getAttributeValues');
 

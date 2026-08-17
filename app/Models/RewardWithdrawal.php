@@ -26,11 +26,19 @@ class RewardWithdrawal extends Model
 
         'payment_reference',
 
+        'settlement_reference',
+
+        'settled_amount',
+
+        'settled_at',
+
+        'settled_by',
+
+        'settlement_remark',
+
         'admin_remark',
 
         'status',
-
-        'approved_at',
 
     ];
 
@@ -49,7 +57,9 @@ class RewardWithdrawal extends Model
 
         'closing_rewards' => 'decimal:2',
 
-        'approved_at' => 'datetime',
+        'settled_amount' => 'decimal:2',
+
+        'settled_at' => 'datetime',
 
     ];
 
