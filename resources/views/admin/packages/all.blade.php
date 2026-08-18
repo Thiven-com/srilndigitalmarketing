@@ -29,7 +29,7 @@
                             <tbody> @forelse($packages as $key => $package)
                                 <tr>
                                     <td>{{ $packages->firstItem() + $key }}</td>
-                                    <td> @if($package->image) <img src="{{ asset('storage/' . $package->image) }}"
+                                    <td> @if($package->image) <img src="{{ asset($package->image) }}"
                                     width="50" height="50" class="rounded border"> @else <img
                                                 src="{{ URL::asset('build/img/users/user-32.jpg') }}" width="50" height="50"
                                             class="rounded border"> @endif </td>

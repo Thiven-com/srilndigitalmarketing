@@ -65,7 +65,7 @@
 
                                     @if($package->image)
 
-                                        <img src="{{ asset('storage/' . $package->image) }}" alt="{{ $package->name }}">
+                                        <img src="{{ asset($package->image) }}" alt="{{ $package->name }}">
 
                                     @else
 

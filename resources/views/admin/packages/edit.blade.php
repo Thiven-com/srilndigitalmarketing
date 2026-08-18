@@ -37,11 +37,11 @@
                                     class="form-control">{{ old('description', $package->description) }}</textarea> </div>
                             <div class="col-md-6 mb-3"> <label class="form-label">Image</label> <input type="file"
                                     name="image" class="form-control"> @if($package->image) <img
-                                        src="{{ asset('storage/' . $package->image) }}" width="80" class="mt-2 rounded border">
+                                        src="{{ asset($package->image) }}" width="80" class="mt-2 rounded border">
                                     @endif </div>
                             <div class="col-md-6 mb-3"> <label class="form-label">Icon</label> <input type="file"
                                     name="icon" class="form-control"> @if($package->icon) <img
-                                        src="{{ asset('storage/' . $package->icon) }}" width="80" class="mt-2 rounded border">
+                                        src="{{ asset($package->icon) }}" width="80" class="mt-2 rounded border">
                                     @endif </div>
                             <div class="col-md-4 mb-3"> <label class="form-label">Sort Order</label> <input type="number"
                                     name="sort_order" value="{{ old('sort_order', $package->sort_order) }}"

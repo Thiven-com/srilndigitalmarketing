@@ -54,7 +54,7 @@
                             @if($customer->profile_pic)
 
                                 <img
-                                    src="{{ asset('storage/' . $customer->profile_pic) }}"
+                                    src="{{ asset($customer->profile_pic) }}"
                                     alt="{{ $customer->name }}"
                                 >
 

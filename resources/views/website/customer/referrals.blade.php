@@ -167,7 +167,7 @@
                             {{-- Profile --}}
                             @if($referral->profile_pic)
 
-                                <img src="{{ asset('storage/' . $referral->profile_pic) }}" width="50" height="50"
+                                <img src="{{ asset($referral->profile_pic) }}" width="50" height="50"
                                     class="rounded-circle me-3" style="object-fit: cover;">
 
                             @else

@@ -33,7 +33,7 @@
 
                         @if(auth()->user()->profile_pic)
 
-                            <img src="{{ asset('storage/' . auth()->user()->profile_pic) }}" alt="{{ auth()->user()->name }}">
+                            <img src="{{ asset(auth()->user()->profile_pic) }}" alt="{{ auth()->user()->name }}">
 
                         @else
 
@@ -296,7 +296,7 @@
 
                                     @if(auth()->user()->profile_pic)
 
-                                        <img src="{{ asset('storage/' . auth()->user()->profile_pic) }}"
+                                        <img src="{{ asset(auth()->user()->profile_pic) }}"
                                             alt="{{ auth()->user()->name }}">
 
                                     @else

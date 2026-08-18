@@ -33,7 +33,7 @@
                     <div class="card-body text-center">
 
                         @if($package->image)
-                            <img src="{{ asset('storage/' . $package->image) }}"
+                            <img src="{{ asset( $package->image) }}"
                                  alt="Package Image"
                                  class="img-fluid rounded-3 border mb-3"
                                  style="max-height: 260px; object-fit: cover;">
@@ -72,7 +72,7 @@
                             <div class="border-top pt-3">
                                 <p class="text-muted small mb-2">Package Icon</p>
 
-                                <img src="{{ asset('storage/' . $package->icon) }}"
+                                <img src="{{ asset($package->icon) }}"
                                      alt="Package Icon"
                                      width="72"
                                      height="72"

@@ -191,7 +191,7 @@
 
                             @if($kyc->aadhaar_image)
 
-                                <a href="{{ asset('storage/' . $kyc->aadhaar_image) }}"
+                                <a href="{{ asset($kyc->aadhaar_image) }}"
                                    target="_blank"
                                    class="btn btn-outline-primary btn-sm">
 
