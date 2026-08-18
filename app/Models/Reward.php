@@ -14,6 +14,7 @@ class Reward extends Model
 
     protected $fillable = [
         'user_id',
+        'package_id',
         'role',
         'activity_id',
         'source_type',

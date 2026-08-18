@@ -182,7 +182,8 @@ class BonusService
                     level: $level,
                     packageCustomer: $customer,
                     sourceType: $sourceType,
-                    sourceId: $sourceId
+                    sourceId: $sourceId,
+                    packageId: $packageId
                 );
 
 
@@ -283,7 +284,8 @@ class BonusService
         PackageLevel $level,
         Customer $packageCustomer,
         string $sourceType,
-        ?int $sourceId = null
+        ?int $sourceId = null,
+        ?int $packageId = null
     ): void {
 
         if ($amount <= 0) {
@@ -362,6 +364,10 @@ class BonusService
 
             'user_id' =>
                 $customer->id,
+
+            'package_id' =>
+                $packageId,
+
 
             'role' =>
                 'customer',

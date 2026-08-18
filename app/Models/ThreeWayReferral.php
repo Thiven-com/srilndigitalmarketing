@@ -13,6 +13,7 @@ class ThreeWayReferral extends Model
 
     protected $fillable = [
         'customer_id',
+        'package_id',
         'userId',
         'sponser_id',
         'placedunder_id',

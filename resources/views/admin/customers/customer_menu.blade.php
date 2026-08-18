@@ -157,145 +157,151 @@
                                         @endif
                                     </div> --}}
 
-                                    </div>
-
-
-
-
                                 </div>
+
+
+
 
                             </div>
 
                         </div>
 
-                        {{-- RIGHT --}}
-                        {{-- <div class="col-lg-6 mt-4 mt-lg-0">
-
-                            <div class="row g-3">
-
-                                <div class="col-4">
-                                    <div class="stats-card">
-                                        <div class="stats-icon bg-warning-subtle text-warning">
-                                            <i class="ti ti-gift"></i>
-                                        </div>
-
-                                        <div>
-                                            <h4 class="fw-bold mb-0">
-                                                ₹{{ number_format($customer->rewards ?? 0, 2) }}
-                                            </h4>
-                                            <small class="text-muted">Rewards</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-4">
-                                    <div class="stats-card">
-                                        <div class="stats-icon bg-primary-subtle text-primary">
-                                            <i class="ti ti-wallet"></i>
-                                        </div>
-
-                                        <div>
-                                            <h4 class="fw-bold mb-0">
-                                                ₹{{ number_format($customer->wallet ?? 0, 2) }}
-                                            </h4>
-                                            <small class="text-muted">Wallet</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="stats-card">
-                                        <div class="stats-icon bg-primary-subtle text-primary">
-                                            <i class="ti ti-wallet"></i>
-                                        </div>
-
-                                        <div>
-                                            <h4 class="fw-bold mb-0">
-                                                ₹{{ number_format($customer->bonus ?? 0, 2) }}
-                                            </h4>
-                                            <small class="text-muted">Bonus</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                        </div> --}}
-
                     </div>
 
-                </div>
-            </div>
+                    {{-- RIGHT --}}
+                    {{-- <div class="col-lg-6 mt-4 mt-lg-0">
 
+                        <div class="row g-3">
 
-            {{-- ================= TABS ================= --}}
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body py-2">
+                            <div class="col-4">
+                                <div class="stats-card">
+                                    <div class="stats-icon bg-warning-subtle text-warning">
+                                        <i class="ti ti-gift"></i>
+                                    </div>
 
-                    <ul class="nav nav-pills customer-tabs gap-2">
+                                    <div>
+                                        <h4 class="fw-bold mb-0">
+                                            ₹{{ number_format($customer->rewards ?? 0, 2) }}
+                                        </h4>
+                                        <small class="text-muted">Rewards</small>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'profile') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'profile']) }}">
-                                <i class="ti ti-user me-1"></i> Profile
-                            </a>
-                        </li>
+                            <div class="col-4">
+                                <div class="stats-card">
+                                    <div class="stats-icon bg-primary-subtle text-primary">
+                                        <i class="ti ti-wallet"></i>
+                                    </div>
 
-                        {{-- <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'activities') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'activities']) }}">
-                                <i class="ti ti-activity me-1"></i> Activities
-                            </a>
-                        </li> --}}
+                                    <div>
+                                        <h4 class="fw-bold mb-0">
+                                            ₹{{ number_format($customer->wallet ?? 0, 2) }}
+                                        </h4>
+                                        <small class="text-muted">Wallet</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stats-card">
+                                    <div class="stats-icon bg-primary-subtle text-primary">
+                                        <i class="ti ti-wallet"></i>
+                                    </div>
 
-                        <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'rewards') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'rewards']) }}">
-                                <i class="ti ti-award me-1"></i> Rewards
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'kyc') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'kyc']) }}">
-                                <i class="ti ti-shield-check me-1"></i> Kyc
-                            </a>
-                        </li>
+                                    <div>
+                                        <h4 class="fw-bold mb-0">
+                                            ₹{{ number_format($customer->bonus ?? 0, 2) }}
+                                        </h4>
+                                        <small class="text-muted">Bonus</small>
+                                    </div>
+                                </div>
+                            </div>
 
-                        {{-- <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'wallet') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'wallet']) }}">
-                                <i class="ti ti-wallet me-1"></i> Wallet
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'bonus') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'bonus']) }}">
-                                <i class="ti ti-wallet me-1"></i> Bonus
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @if(request('slug') == 'referrals') active @endif"
-                                href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'referrals']) }}">
-                                <i class="ti ti-wallet me-1"></i> Referrals
-                            </a>
-                        </li> --}}
+                        </div>
 
-                    </ul>
+                    </div> --}}
 
                 </div>
+
             </div>
-
-
-            {{-- ================= CONTENT ================= --}}
-            @yield('customer')
-
         </div>
 
 
-        {{-- ================= FOOTER ================= --}}
-        <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
-            <p class="mb-0">2026 © {{ $site->site_name ?? ' '}}. All Rights Reserved</p>
-            <p>Designed & Developed by <span class="text-primary">{{ $site->site_name ?? ' '}}</span></p>
+        {{-- ================= TABS ================= --}}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body py-2">
+
+                <ul class="nav nav-pills customer-tabs gap-2">
+
+                    <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'profile') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'profile']) }}">
+                            <i class="ti ti-user me-1"></i> Profile
+                        </a>
+                    </li>
+
+                    {{-- <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'activities') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'activities']) }}">
+                            <i class="ti ti-activity me-1"></i> Activities
+                        </a>
+                    </li> --}}
+
+                    <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'rewards') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'rewards']) }}">
+                            <i class="ti ti-award me-1"></i> Rewards
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'kyc') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'kyc']) }}">
+                            <i class="ti ti-shield-check me-1"></i> Kyc
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'bankdetails') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'bankdetails']) }}">
+                            <i class="ti ti-credit-card me-1"></i> Bank Details
+                        </a>
+                    </li>
+
+                    {{-- <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'wallet') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'wallet']) }}">
+                            <i class="ti ti-wallet me-1"></i> Wallet
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'bonus') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'bonus']) }}">
+                            <i class="ti ti-wallet me-1"></i> Bonus
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @if(request('slug') == 'referrals') active @endif"
+                            href="{{ route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'referrals']) }}">
+                            <i class="ti ti-wallet me-1"></i> Referrals
+                        </a>
+                    </li> --}}
+
+                </ul>
+
+            </div>
         </div>
+
+
+        {{-- ================= CONTENT ================= --}}
+        @yield('customer')
+
+    </div>
+
+
+    {{-- ================= FOOTER ================= --}}
+    <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+        <p class="mb-0">2026 © {{ $site->site_name ?? ' '}}. All Rights Reserved</p>
+        <p>Designed & Developed by <span class="text-primary">{{ $site->site_name ?? ' '}}</span></p>
+    </div>
 
     </div>
 

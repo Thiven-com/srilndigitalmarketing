@@ -12,11 +12,13 @@ use Illuminate\Http\Request;
 class TreeController extends Controller
 {
     /**
-     * Display all 4 trees.
+     * Display selected tree.
      */
     public function index(Request $request)
     {
         $treeType = $request->get('tree', 'three');
+
+        $packageId = $request->get('package_id');
 
         $selectedUserId = $request->get('user');
 
@@ -29,21 +31,20 @@ class TreeController extends Controller
         $treeModel = match ($treeType) {
 
             'three' =>
-            ThreeWayReferral::class,
+                ThreeWayReferral::class,
 
             'three_direct' =>
-            ThreeWayDirectReferral::class,
+                ThreeWayDirectReferral::class,
 
             'five' =>
-            FiveWayReferral::class,
+                FiveWayReferral::class,
 
             'five_direct' =>
-            FiveWayDirectReferral::class,
+                FiveWayDirectReferral::class,
 
             default =>
-            ThreeWayReferral::class,
+                ThreeWayReferral::class,
         };
-
 
         /*
         |--------------------------------------------------------------------------
@@ -54,21 +55,20 @@ class TreeController extends Controller
         $title = match ($treeType) {
 
             'three' =>
-            'Three Way Tree',
+                'Three Way Tree',
 
             'three_direct' =>
-            'Three Way Direct Tree',
+                'Three Way Direct Tree',
 
             'five' =>
-            'Five Way Tree',
+                'Five Way Tree',
 
             'five_direct' =>
-            'Five Way Direct Tree',
+                'Five Way Direct Tree',
 
             default =>
-            'Three Way Tree',
+                'Three Way Tree',
         };
-
 
         /*
         |--------------------------------------------------------------------------
@@ -78,10 +78,19 @@ class TreeController extends Controller
 
         if ($selectedUserId) {
 
-            $rootNode = $treeModel::where(
+            $query = $treeModel::where(
                 'userId',
                 $selectedUserId
-            )->first();
+            );
+
+            if ($packageId) {
+                $query->where(
+                    'package_id',
+                    $packageId
+                );
+            }
+
+            $rootNode = $query->first();
 
         } else {
 
@@ -91,12 +100,20 @@ class TreeController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $rootNode = $treeModel::orderBy(
+            $query = $treeModel::orderBy(
                 'id',
                 'asc'
-            )->first();
-        }
+            );
 
+            if ($packageId) {
+                $query->where(
+                    'package_id',
+                    $packageId
+                );
+            }
+
+            $rootNode = $query->first();
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -110,7 +127,8 @@ class TreeController extends Controller
 
             $tree = $this->buildTree(
                 $treeModel,
-                $rootNode->userId
+                $rootNode->userId,
+                $packageId
             );
 
             if ($tree) {
@@ -118,18 +136,17 @@ class TreeController extends Controller
             }
         }
 
-
         return view(
             'admin.trees.index',
             compact(
                 'trees',
                 'treeType',
                 'title',
+                'packageId',
                 'selectedUserId'
             )
         );
     }
-
 
     /**
      * Build tree recursively.
@@ -137,18 +154,40 @@ class TreeController extends Controller
     protected function buildTree(
         string $treeModel,
         string $userId,
+        string $packageId,
         int $level = 0,
         int $maxLevel = 6
     ): ?array {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Maximum Level
+        |--------------------------------------------------------------------------
+        */
 
         if ($level >= $maxLevel) {
             return null;
         }
 
-        $node = $treeModel::where(
+        /*
+        |--------------------------------------------------------------------------
+        | Find Current Node
+        |--------------------------------------------------------------------------
+        */
+
+        $query = $treeModel::where(
             'userId',
             $userId
-        )->first();
+        );
+
+        if ($packageId) {
+            $query->where(
+                'package_id',
+                $packageId
+            );
+        }
+
+        $node = $query->first();
 
         if (!$node) {
             return null;
@@ -160,10 +199,19 @@ class TreeController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $children = $treeModel::where(
+        $childrenQuery = $treeModel::where(
             'placedunder_id',
             $node->userId
-        )
+        );
+
+        if ($packageId) {
+            $childrenQuery->where(
+                'package_id',
+                $packageId
+            );
+        }
+
+        $children = $childrenQuery
             ->orderBy('id')
             ->get();
 
@@ -174,6 +222,7 @@ class TreeController extends Controller
             $childNode = $this->buildTree(
                 $treeModel,
                 $child->userId,
+                $packageId,
                 $level + 1,
                 $maxLevel
             );
@@ -183,12 +232,23 @@ class TreeController extends Controller
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Return Node
+        |--------------------------------------------------------------------------
+        */
+
         return [
 
-            'id' => $node->id,
+            'id' =>
+                $node->id,
 
             'customer_id' =>
                 $node->customer_id,
+
+            'package_id' =>
+                $node->package_id,
+
             'customer_name' =>
                 $node->customer->name ?? '',
 

@@ -15,14 +15,13 @@ class ThreeWayTreeService
         $this->treeService = $treeService;
     }
 
-    public function activate(Customer $customer): ?ThreeWayReferral
+    public function activate(Customer $customer, string $packageId): ?ThreeWayReferral
     {
-        return DB::transaction(function () use ($customer) {
+        return DB::transaction(function () use ($customer, $packageId) {
 
-            $existing = ThreeWayReferral::where(
-                'customer_id',
-                $customer->id
-            )->first();
+            $existing = ThreeWayReferral::where('customer_id', $customer->id)
+                ->where('package_id', $packageId)
+                ->first();
 
             if ($existing) {
                 return $existing;
@@ -65,7 +64,11 @@ class ThreeWayTreeService
             $rootExists = ThreeWayReferral::where(
                 'userId',
                 $rootUserId
-            )->exists();
+            )
+                ->where(
+                    'package_id',
+                    $packageId
+                )->exists();
 
             /*
             |--------------------------------------------------------------------------
@@ -136,6 +139,7 @@ class ThreeWayTreeService
             $tree->customer_id = $customer->id;
             $tree->userId = $treeUserId;
             $tree->sponser_id = $sponsorId;
+            $tree->package_id = $packageId;
             $tree->placedunder_id = $placedUnder;
 
             $tree->left_points = 0;

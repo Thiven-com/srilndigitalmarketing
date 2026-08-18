@@ -32,10 +32,10 @@
                         {{-- Three Way --}}
                         <div class="col-xl-3 col-md-6">
 
-                            <a href="{{ route('admin.trees.index', ['tree' => 'three']) }}" class="text-decoration-none">
+                            <a href="{{ route('admin.trees.index', ['tree' => 'three', 'package_id' => '1']) }}" class="text-decoration-none">
 
                                 <div class="tree-tab-card
-                                    {{ $treeType === 'three' ? 'active-three' : '' }}">
+                                    {{ $packageId === '1' ? 'active-three' : '' }}">
 
                                     <div class="tree-icon three-icon">
                                         <i data-feather="git-branch"></i>
@@ -61,11 +61,11 @@
                         {{-- Three Way Direct --}}
                         <div class="col-xl-3 col-md-6">
 
-                            <a href="{{ route('admin.trees.index', ['tree' => 'three_direct']) }}"
+                            <a href="{{ route('admin.trees.index', ['tree' => 'three', 'package_id' => '2']) }}"
                                 class="text-decoration-none">
 
                                 <div class="tree-tab-card
-                                    {{ $treeType === 'three_direct' ? 'active-three' : '' }}">
+                                    {{  $packageId === '2' ? 'active-three' : '' }}">
 
                                     <div class="tree-icon three-icon">
                                         <i data-feather="users"></i>
@@ -91,10 +91,10 @@
                         {{-- Five Way --}}
                         <div class="col-xl-3 col-md-6">
 
-                            <a href="{{ route('admin.trees.index', ['tree' => 'five']) }}" class="text-decoration-none">
+                            <a href="{{ route('admin.trees.index', ['tree' => 'three', 'package_id' => '3']) }}" class="text-decoration-none">
 
                                 <div class="tree-tab-card
-                                    {{ $treeType === 'five' ? 'active-five' : '' }}">
+                                    {{  $packageId === '3' ? 'active-three' : '' }}">
 
                                     <div class="tree-icon five-icon">
                                         <i data-feather="git-merge"></i>
@@ -118,7 +118,7 @@
 
 
                         {{-- Five Way Direct --}}
-                        <div class="col-xl-3 col-md-6">
+                        {{-- <div class="col-xl-3 col-md-6">
 
                             <a href="{{ route('admin.trees.index', ['tree' => 'five_direct']) }}"
                                 class="text-decoration-none">
@@ -144,7 +144,7 @@
 
                             </a>
 
-                        </div>
+                        </div> --}}
 
                     </div>
 

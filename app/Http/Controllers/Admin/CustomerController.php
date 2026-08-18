@@ -49,6 +49,17 @@ class CustomerController extends Controller
                 'kyc'
             ));
 
+        } elseif ($request->slug == 'bankdetails') {
+
+            $bankAccount = BankAccount::where('user_id', $customer->id)
+                ->where('user_role', 'customer')
+                ->first();
+
+            return view('admin.customers.bankdetails', compact(
+                'customer',
+                'bankAccount'
+            ));
+
         } else {
             return redirect(route('admin.customers.show', ['customer' => $customer->id, 'slug' => 'profile']));
         }

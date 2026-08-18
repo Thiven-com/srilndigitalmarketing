@@ -89,7 +89,7 @@
                                                         </li>
 
                                                         <li class="{{ Request::routeIs('admin.trees.index') ? 'active' : '' }}">
-                                                                <a href="{{ route('admin.trees.index') }}">
+                                                                <a href="{{ route('admin.trees.index', ['tree' => 'three', 'package_id' => '1']) }}">
                                                                         <i class="ti ti-sitemap fs-16 me-2"></i>
                                                                         <span>Genealogy Tree</span>
                                                                 </a>

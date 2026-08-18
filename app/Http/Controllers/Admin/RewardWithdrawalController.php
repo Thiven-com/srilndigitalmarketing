@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
 use App\Models\Customer;
+use App\Models\Package;
 use App\Models\Reward;
 use App\Models\RewardWithdrawal;
 use Illuminate\Http\Request;
