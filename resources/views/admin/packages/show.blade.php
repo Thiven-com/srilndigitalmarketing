@@ -14,9 +14,9 @@
             </div>
 
             <div class="d-flex gap-2">
-                <a href="{{ route('packages.edit', $package->id) }}" class="btn btn-primary">
+                {{-- <a href="{{ route('packages.edit', $package->id) }}" class="btn btn-primary">
                     <i class="ti ti-edit me-1"></i>Edit
-                </a>
+                </a> --}}
 
                 <a href="{{ route('packages.all') }}" class="btn btn-secondary">
                     <i class="ti ti-arrow-left me-1"></i>Back
