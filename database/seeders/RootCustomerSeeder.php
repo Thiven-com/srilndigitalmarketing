@@ -3,17 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Customer;
+use App\Models\Package;
 use App\Models\ThreeWayReferral;
-use App\Models\ThreeWayDirectReferral;
-use App\Models\FiveWayReferral;
-use App\Models\FiveWayDirectReferral;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
 class RootCustomerSeeder extends Seeder
 {
     /**
-     * Create root customer and initialize all four referral trees.
+     * Create root customer and initialize the root
+     * for every package's Three-Way referral tree.
      */
     public function run(): void
     {
@@ -32,11 +31,15 @@ class RootCustomerSeeder extends Seeder
 
             /*
             |--------------------------------------------------------------------------
-            | CHECK EXISTING ROOT CUSTOMER
+            | CHECK / CREATE ROOT CUSTOMER
             |--------------------------------------------------------------------------
             */
 
-            $customer = Customer::where('userid', $userId)->first();
+            $customer = Customer::where(
+                'userid',
+                $userId
+            )->first();
+
 
             if (!$customer) {
 
@@ -102,113 +105,150 @@ class RootCustomerSeeder extends Seeder
 
                     'account_status' => 'active',
                 ]);
-
             }
 
 
             /*
             |--------------------------------------------------------------------------
-            | COMMON ROOT TREE DATA
+            | GET ALL ACTIVE PACKAGES
             |--------------------------------------------------------------------------
+            |
+            | Every package gets its own Three-Way tree.
+            |
             */
 
-            $rootData = [
+            $packages = Package::where('status', 1)
+                ->orderBy('id')
+                ->get();
 
-                'customer_id' => $customer->id,
 
-                'userId' => $customer->userid,
+            if ($packages->isEmpty()) {
 
-                // Root has no sponsor
-                'sponser_id' => null,
+                $this->command->warn(
+                    'No active packages found. Root tree was not initialized.'
+                );
 
-                // Root has no parent
-                'placedunder_id' => null,
-
-                'left_points' => 0,
-
-                'right_points' => 0,
-
-                'total_income' => 0,
-
-                'last_settled_at' => null,
-
-                // Root node
-                'rootmap' => ',' . $customer->userid . ',',
-
-                'presenttime' => now(),
-
-                'points' => 0,
-
-                'edate' => now(),
-
-                'g_count' => 0,
-
-                // Root referral
-                'g_reff' => $customer->userid,
-
-                // No children initially
-                'placedunderid_cnt' => 0,
-
-                'cron_start' => null,
-
-                'cron_end' => null,
-            ];
+                return;
+            }
 
 
             /*
             |--------------------------------------------------------------------------
-            | THREE WAY REFERRAL TREE
+            | CREATE ROOT FOR EACH PACKAGE TREE
             |--------------------------------------------------------------------------
             */
 
-            ThreeWayReferral::firstOrCreate(
-                [
-                    'customer_id' => $customer->id,
-                ],
-                $rootData
-            );
+            foreach ($packages as $package) {
+
+                /*
+                |--------------------------------------------------------------------------
+                | Root data
+                |--------------------------------------------------------------------------
+                */
+
+                $rootData = [
+
+                    'customer_id' =>
+                        $customer->id,
+
+                    'package_id' =>
+                        $package->id,
+
+                    'userId' =>
+                        $customer->userid,
+
+                    /*
+                     * Root has no sponsor.
+                     */
+                    'sponser_id' =>
+                        null,
+
+                    /*
+                     * Root has no parent.
+                     */
+                    'placedunder_id' =>
+                        null,
+
+                    'left_points' =>
+                        0,
+
+                    'right_points' =>
+                        0,
+
+                    'total_income' =>
+                        0,
+
+                    'last_settled_at' =>
+                        null,
+
+                    /*
+                     * Root map.
+                     */
+                    'rootmap' =>
+                        ',' . $customer->userid . ',',
+
+                    'points' =>
+                        0,
+
+                    'edate' =>
+                        now(),
+
+                    'g_count' =>
+                        0,
+
+                    /*
+                     * Root referral.
+                     */
+                    'g_reff' =>
+                        $customer->userid,
+
+                    /*
+                     * Root initially has no children.
+                     */
+                    'placedunderid_cnt' =>
+                        0,
+
+                    'cron_start' =>
+                        null,
+
+                    'cron_end' =>
+                        null,
+                ];
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | THREE WAY DIRECT REFERRAL TREE
-            |--------------------------------------------------------------------------
-            */
+                /*
+                |--------------------------------------------------------------------------
+                | Create / Verify Package Root
+                |--------------------------------------------------------------------------
+                |
+                | IMPORTANT:
+                |
+                | customer_id + package_id identifies the root
+                | for that particular package tree.
+                |
+                */
 
-            ThreeWayDirectReferral::firstOrCreate(
-                [
-                    'customer_id' => $customer->id,
-                ],
-                $rootData
-            );
+                ThreeWayReferral::updateOrCreate(
 
+                    [
+                        'customer_id' =>
+                            $customer->id,
 
-            /*
-            |--------------------------------------------------------------------------
-            | FIVE WAY REFERRAL TREE
-            |--------------------------------------------------------------------------
-            */
+                        'package_id' =>
+                            $package->id,
+                    ],
 
-            FiveWayReferral::firstOrCreate(
-                [
-                    'customer_id' => $customer->id,
-                ],
-                $rootData
-            );
+                    $rootData
+                );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | FIVE WAY DIRECT REFERRAL TREE
-            |--------------------------------------------------------------------------
-            */
-
-            FiveWayDirectReferral::firstOrCreate(
-                [
-                    'customer_id' => $customer->id,
-                ],
-                $rootData
-            );
+                $this->command->info(
+                    'Root initialized for Package ID: '
+                    . $package->id
+                    . ' - '
+                    . ($package->name ?? 'Package')
+                );
+            }
 
 
             /*
@@ -222,15 +262,19 @@ class RootCustomerSeeder extends Seeder
             );
 
             $this->command->info(
-                'Root User ID: ' . $customer->userid
+                'Root User ID: ' .
+                $customer->userid
             );
 
             $this->command->info(
-                'Root Customer ID: ' . $customer->id
+                'Root Customer ID: ' .
+                $customer->id
             );
 
             $this->command->info(
-                'Initialized: 3-way, 3-way direct, 5-way and 5-way direct trees.'
+                'Three-Way root initialized for '
+                . $packages->count()
+                . ' package(s).'
             );
         });
     }

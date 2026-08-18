@@ -931,10 +931,10 @@ class CustomerController extends Controller
             'package_status' => 'pending',
         ]);
         // Store package_id in three_way_referrals
-        ThreeWayReferral::where('customer_id', $customer->id)
-            ->update([
-                'package_id' => $package->id,
-            ]);
+        // ThreeWayReferral::where('customer_id', $customer->id)
+        //     ->update([
+        //         'package_id' => $package->id,
+        //     ]);
 
         return redirect()
             ->route('customer.packages')

@@ -81,26 +81,81 @@
                                                                 </a>
                                                         </li>
 
-                                                        <li class="{{ Request::routeIs('customer-packages') ? 'active' : '' }}">
+                                                        {{-- <li
+                                                                class="{{ Request::routeIs('customer-packages') ? 'active' : '' }}">
                                                                 <a href="{{ route('admin.customer-packages.index') }}">
                                                                         <i class="ti ti-credit-card fs-16 me-2"></i>
                                                                         <span>Subscriptions</span>
                                                                 </a>
+                                                        </li> --}}
+                                                        <li class="submenu">
+
+                                                                <a href="javascript:void(0);"
+                                                                        class="{{ Request::routeIs('admin.customer-packages.index') ? 'active subdrop' : '' }}">
+
+                                                                        <i class="ti ti-article fs-16 me-2"></i>
+
+                                                                        <span>Subscriptions</span>
+
+                                                                        <span class="menu-arrow"></span>
+
+                                                                </a>
+
+
+                                                                <ul>
+
+                                                                        {{-- ALL SUBSCRIPTIONS --}}
+                                                                        <li
+                                                                                class="{{ Request::routeIs('admin.customer-packages.index') && !request()->get('payment_status') ? 'active' : '' }}">
+
+                                                                                <a
+                                                                                        href="{{ route('admin.customer-packages.index') }}">
+
+                                                                                        <i class="ti ti-users fs-16 me-2"></i>
+
+                                                                                        <span>Subscriptions</span>
+
+                                                                                </a>
+
+                                                                        </li>
+
+
+                                                                        {{-- PENDING SUBSCRIPTIONS --}}
+                                                                        <li
+                                                                                class="{{ Request::routeIs('admin.customer-packages.index') && request()->get('payment_status') == 'pending' ? 'active' : '' }}">
+
+                                                                                <a
+                                                                                        href="{{ route('admin.customer-packages.index', ['payment_status' => 'pending']) }}">
+
+                                                                                        <i
+                                                                                                class="ti ti-user-plus fs-16 me-2"></i>
+
+                                                                                        <span>Pending Subscriptions</span>
+
+                                                                                </a>
+
+                                                                        </li>
+
+                                                                </ul>
+
                                                         </li>
 
                                                         <li class="{{ Request::routeIs('admin.trees.index') ? 'active' : '' }}">
-                                                                <a href="{{ route('admin.trees.index', ['tree' => 'three', 'package_id' => '1']) }}">
+                                                                <a
+                                                                        href="{{ route('admin.trees.index', ['tree' => 'three', 'package_id' => '1']) }}">
                                                                         <i class="ti ti-sitemap fs-16 me-2"></i>
                                                                         <span>Genealogy Tree</span>
                                                                 </a>
                                                         </li>
-                                                        <li class="{{ Request::routeIs('admin.rewardhistory.index') ? 'active' : '' }}">
+                                                        <li
+                                                                class="{{ Request::routeIs('admin.rewardhistory.index') ? 'active' : '' }}">
                                                                 <a href="{{ route('admin.rewardhistory.index') }}">
                                                                         <i class="ti ti-discount-2 fs-16 me-2"></i>
                                                                         <span>Reword History</span>
                                                                 </a>
                                                         </li>
-                                                        <li class="{{ Request::routeIs('admin.reward-withdrawals.index') ? 'active' : '' }}">
+                                                        <li
+                                                                class="{{ Request::routeIs('admin.reward-withdrawals.index') ? 'active' : '' }}">
                                                                 <a href="{{ route('admin.reward-withdrawals.index') }}">
                                                                         <i class="ti ti-wallet-off fs-16 me-2"></i>
                                                                         <span>Reword Withdraw</span>

@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\CustomerSubscription;
 use App\Models\Package;
+use App\Models\PackageComponent;
 use App\Models\Payment;
 use App\Models\Reward;
 use App\Models\Wallet;
@@ -22,25 +23,173 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $totalPackages = Package::count();
+
         $totalCustomers = Customer::count();
-        // $adminCommission = CustomerPackage::query()
-        //     ->where('payment_status', 'approved')
-        //     ->join(
-        //         'package_components',
-        //         'package_components.package_id',
-        //         '=',
-        //         'customer_packages.package_id'
-        //     )
-        //     ->where(
-        //         'package_components.component_type',
-        //         'company'
-        //     )
-        //     ->sum('package_components.amount');
 
-        $rewardCount = Reward::where('reward_type','package_bonus')->count();
-        $adminCommission = $rewardCount * 150;
-        return view('admin.auth.dash', compact('totalCustomers', 'totalPackages','adminCommission'));
 
+        /*
+        |--------------------------------------------------------------------------
+        | PACKAGE 1 COMPANY COMMISSION
+        |--------------------------------------------------------------------------
+        */
+
+        $package1Count = CustomerPackage::where(
+            'package_id',
+            1
+        )
+            ->where(
+                'payment_status',
+                'approved'
+            )
+            ->count();
+
+        $package1Company = PackageComponent::where(
+            'package_id',
+            1
+        )
+            ->where(
+                'component_type',
+                'company'
+            )
+            ->where(
+                'code',
+                'COMPANY'
+            )
+            ->value('amount') ?? 0;
+
+        $package1Commission =
+            $package1Count * $package1Company;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PACKAGE 2 COMPANY COMMISSION
+        |--------------------------------------------------------------------------
+        */
+
+        $package2Count = CustomerPackage::where(
+            'package_id',
+            2
+        )
+            ->where(
+                'payment_status',
+                'approved'
+            )
+            ->count();
+
+        $package2Company = PackageComponent::where(
+            'package_id',
+            2
+        )
+            ->where(
+                'component_type',
+                'company'
+            )
+            ->where(
+                'code',
+                'COMPANY'
+            )
+            ->value('amount') ?? 0;
+
+        $package2Commission =
+            $package2Count * $package2Company;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PACKAGE 3 COMPANY COMMISSION
+        |--------------------------------------------------------------------------
+        */
+
+        $package3Count = CustomerPackage::where(
+            'package_id',
+            3
+        )
+            ->where(
+                'payment_status',
+                'approved'
+            )
+            ->count();
+
+        $package3Company = PackageComponent::where(
+            'package_id',
+            3
+        )
+            ->where(
+                'component_type',
+                'company'
+            )
+            ->where(
+                'code',
+                'COMPANY'
+            )
+            ->value('amount') ?? 0;
+
+        $package3Commission =
+            $package3Count * $package3Company;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PACKAGE 4 COMPANY COMMISSION
+        |--------------------------------------------------------------------------
+        */
+
+        $package4Count = CustomerPackage::where(
+            'package_id',
+            4
+        )
+            ->where(
+                'payment_status',
+                'approved'
+            )
+            ->count();
+
+        $package4Company = PackageComponent::where(
+            'package_id',
+            4
+        )
+            ->where(
+                'component_type',
+                'company'
+            )
+            ->where(
+                'code',
+                'COMPANY'
+            )
+            ->value('amount') ?? 0;
+
+        $package4Commission =
+            $package4Count * $package4Company;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL COMPANY COMMISSION
+        |--------------------------------------------------------------------------
+        */
+
+        $totalAdminCommission =
+            $package1Commission +
+            $package2Commission +
+            $package3Commission +
+            $package4Commission;
+
+
+        return view(
+            'admin.auth.dash',
+            compact(
+                'totalCustomers',
+                'totalPackages',
+
+                'package1Commission',
+                'package2Commission',
+                'package3Commission',
+                'package4Commission',
+
+                'totalAdminCommission'
+            )
+        );
     }
     // public function index(Request $request)
     // {

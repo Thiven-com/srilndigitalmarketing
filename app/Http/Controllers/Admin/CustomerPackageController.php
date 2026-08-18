@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
+use App\Models\ThreeWayReferral;
 use App\Services\Tree\ThreeWayTreeService;
-use App\Services\Tree\ThreeWayDirectTreeService;
-use App\Services\Tree\FiveWayTreeService;
-use App\Services\Tree\FiveWayDirectTreeService;
 use App\Services\Tree\BonusService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,37 +15,16 @@ class CustomerPackageController extends Controller
 {
     protected ThreeWayTreeService $threeWayTree;
 
-    protected ThreeWayDirectTreeService $threeWayDirectTree;
-
-    protected FiveWayTreeService $fiveWayTree;
-
-    protected FiveWayDirectTreeService $fiveWayDirectTree;
-
     protected BonusService $bonusService;
 
 
     public function __construct(
         ThreeWayTreeService $threeWayTree,
-        ThreeWayDirectTreeService $threeWayDirectTree,
-        FiveWayTreeService $fiveWayTree,
-        FiveWayDirectTreeService $fiveWayDirectTree,
         BonusService $bonusService
     ) {
+        $this->threeWayTree = $threeWayTree;
 
-        $this->threeWayTree =
-            $threeWayTree;
-
-        $this->threeWayDirectTree =
-            $threeWayDirectTree;
-
-        $this->fiveWayTree =
-            $fiveWayTree;
-
-        $this->fiveWayDirectTree =
-            $fiveWayDirectTree;
-
-        $this->bonusService =
-            $bonusService;
+        $this->bonusService = $bonusService;
     }
 
 
@@ -73,8 +50,7 @@ class CustomerPackageController extends Controller
 
         if ($request->filled('search')) {
 
-            $search =
-                $request->search;
+            $search = $request->search;
 
             $query->where(function ($q) use ($search) {
 
@@ -84,39 +60,42 @@ class CustomerPackageController extends Controller
                     "%{$search}%"
                 )
 
-                    ->orWhere(
-                        'payment_reference',
-                        'like',
-                        "%{$search}%"
-                    )
+                ->orWhere(
+                    'payment_reference',
+                    'like',
+                    "%{$search}%"
+                )
 
-                    ->orWhereHas(
-                        'customer',
-                        function ($customerQuery) use ($search) {
+                ->orWhereHas(
+                    'customer',
+                    function ($customerQuery) use ($search) {
 
-                            $customerQuery
-                                ->where(
-                                    'name',
-                                    'like',
-                                    "%{$search}%"
-                                )
-                                ->orWhere(
-                                    'mobile',
-                                    'like',
-                                    "%{$search}%"
-                                )
-                                ->orWhere(
-                                    'email',
-                                    'like',
-                                    "%{$search}%"
-                                )
-                                ->orWhere(
-                                    'userid',
-                                    'like',
-                                    "%{$search}%"
-                                );
-                        }
-                    );
+                        $customerQuery
+                            ->where(
+                                'name',
+                                'like',
+                                "%{$search}%"
+                            )
+
+                            ->orWhere(
+                                'mobile',
+                                'like',
+                                "%{$search}%"
+                            )
+
+                            ->orWhere(
+                                'email',
+                                'like',
+                                "%{$search}%"
+                            )
+
+                            ->orWhere(
+                                'userid',
+                                'like',
+                                "%{$search}%"
+                            );
+                    }
+                );
             });
         }
 
@@ -149,10 +128,15 @@ class CustomerPackageController extends Controller
                 $request->package_status
             );
         }
+        if($request->payment_status == 'pending'){
+            $query->where(
+                'payment_status',
+                'pending'
+            );
+        }
 
 
-        $customerPackages =
-            $query->paginate(20);
+        $customerPackages = $query->paginate(20);
 
 
         return view(
@@ -170,11 +154,10 @@ class CustomerPackageController extends Controller
 
     public function show($id)
     {
-        $customerPackage =
-            CustomerPackage::with([
-                'customer',
-                'package'
-            ])->findOrFail($id);
+        $customerPackage = CustomerPackage::with([
+            'customer',
+            'package'
+        ])->findOrFail($id);
 
 
         return view(
@@ -195,16 +178,15 @@ class CustomerPackageController extends Controller
         $id
     ) {
 
-        $customerPackage =
-            CustomerPackage::with([
-                'customer',
-                'package'
-            ])->findOrFail($id);
+        $customerPackage = CustomerPackage::with([
+            'customer',
+            'package'
+        ])->findOrFail($id);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Already approved
+        | Already Approved
         |--------------------------------------------------------------------------
         */
 
@@ -220,6 +202,12 @@ class CustomerPackageController extends Controller
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Customer Check
+        |--------------------------------------------------------------------------
+        */
+
         if (!$customerPackage->customer) {
 
             return back()->with(
@@ -228,6 +216,12 @@ class CustomerPackageController extends Controller
             );
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Package Check
+        |--------------------------------------------------------------------------
+        */
 
         if (!$customerPackage->package) {
 
@@ -240,11 +234,13 @@ class CustomerPackageController extends Controller
 
         try {
 
-            DB::transaction(function () use ($customerPackage) {
+            DB::transaction(function () use (
+                $customerPackage
+            ) {
 
                 /*
                 |--------------------------------------------------------------------------
-                | Approve payment
+                | Approve Payment
                 |--------------------------------------------------------------------------
                 */
 
@@ -271,8 +267,11 @@ class CustomerPackageController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Add customer to package tree
+                | Tree Type
                 |--------------------------------------------------------------------------
+                |
+                | All current packages use Three-Way Tree.
+                |
                 */
 
                 $treeType =
@@ -280,6 +279,12 @@ class CustomerPackageController extends Controller
                         $customerPackage->package
                     );
 
+
+                /*
+                |--------------------------------------------------------------------------
+                | Activate Customer In Package Tree
+                |--------------------------------------------------------------------------
+                */
 
                 $this->activateTree(
                     $customerPackage,
@@ -289,7 +294,7 @@ class CustomerPackageController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | Six Level Bonus
+                | Distribute Six Level Bonus
                 |--------------------------------------------------------------------------
                 */
 
@@ -302,9 +307,8 @@ class CustomerPackageController extends Controller
 
             return back()->with(
                 'success',
-                'Package approved, customer added to tree and six-level bonus distributed successfully.'
+                'Package approved, customer added to the package tree and six-level bonus distributed successfully.'
             );
-
 
         } catch (\Throwable $e) {
 
@@ -321,7 +325,7 @@ class CustomerPackageController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | DETERMINE TREE
+    | DETERMINE TREE TYPE
     |--------------------------------------------------------------------------
     */
 
@@ -329,49 +333,25 @@ class CustomerPackageController extends Controller
     {
         /*
         |--------------------------------------------------------------------------
-        | Recommended:
-        |
-        | Package tree_type should be:
-        |
-        | three
-        | three_direct
-        | five
-        | five_direct
+        | All Current Packages Are Three-Way
         |--------------------------------------------------------------------------
         */
 
-        if (!empty($package->tree_type)) {
-
-            return $package->tree_type;
+        if (
+            !empty($package->tree_type) &&
+            $package->tree_type === 'three'
+        ) {
+            return 'three';
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Fallback based on package ID
+        | Default
         |--------------------------------------------------------------------------
-        |
-        | You currently have:
-        |
-        | Package 1
-        | Package 2
-        | Package 3
-        | Package 4
-        |
         */
 
-        return match ((int) $package->id) {
-
-            1 => 'three',
-
-            2 => 'five',
-
-            3 => 'three_direct',
-
-            4 => 'five_direct',
-
-            default => 'three',
-        };
+        return 'three';
     }
 
 
@@ -390,46 +370,47 @@ class CustomerPackageController extends Controller
             $customerPackage->customer;
 
 
-        switch ($treeType) {
+        if (!$customer) {
 
-            case 'three':
-
-                $this->threeWayTree
-                    ->activate($customer);
-
-                break;
-
-
-            case 'three_direct':
-
-                $this->threeWayDirectTree
-                    ->activate($customer);
-
-                break;
-
-
-            case 'five':
-
-                $this->fiveWayTree
-                    ->activate($customer);
-
-                break;
-
-
-            case 'five_direct':
-
-                $this->fiveWayDirectTree
-                    ->activate($customer);
-
-                break;
-
-
-            default:
-
-                throw new \Exception(
-                    "Invalid package tree type: {$treeType}"
-                );
+            throw new \Exception(
+                'Customer not found.'
+            );
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Package ID
+        |--------------------------------------------------------------------------
+        |
+        | Every package has its own Three-Way tree.
+        |
+        */
+
+        $packageId =
+            (int) $customerPackage->package_id;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Three-Way Tree
+        |--------------------------------------------------------------------------
+        */
+
+        if ($treeType === 'three') {
+
+            $this->threeWayTree->activate(
+                $customer,
+                $packageId
+            );
+
+            return;
+        }
+
+
+        throw new \Exception(
+            "Invalid package tree type: {$treeType}"
+        );
     }
 
 
@@ -444,37 +425,32 @@ class CustomerPackageController extends Controller
         string $treeType
     ): void {
 
-        $customer = Customer::find($customerPackage->customer_id);
+        $customer =
+            Customer::find(
+                $customerPackage->customer_id
+            );
+
 
         if (!$customer) {
-            throw new \Exception('Customer not found.');
+
+            throw new \Exception(
+                'Customer not found.'
+            );
         }
+
 
         /*
         |--------------------------------------------------------------------------
-        | Select Tree Model Based On Package Tree Type
+        | Current System
         |--------------------------------------------------------------------------
+        |
+        | All packages use the same Three-Way tree model.
+        |
         */
 
-        $treeModel = match ($treeType) {
+        $treeModel =
+            ThreeWayReferral::class;
 
-            'three' =>
-            \App\Models\ThreeWayReferral::class,
-
-            'three_direct' =>
-            \App\Models\ThreeWayDirectReferral::class,
-
-            'five' =>
-            \App\Models\FiveWayReferral::class,
-
-            'five_direct' =>
-            \App\Models\FiveWayDirectReferral::class,
-
-            default =>
-            throw new \Exception(
-                'Invalid tree type: ' . $treeType
-            ),
-        };
 
         /*
         |--------------------------------------------------------------------------
@@ -501,14 +477,22 @@ class CustomerPackageController extends Controller
     ) {
 
         $request->validate([
+
             'admin_remark' =>
                 'required|string|max:1000',
+
         ]);
 
 
         $customerPackage =
             CustomerPackage::findOrFail($id);
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Approved Package Cannot Be Rejected
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $customerPackage->payment_status ===
@@ -521,6 +505,12 @@ class CustomerPackageController extends Controller
             );
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reject Package
+        |--------------------------------------------------------------------------
+        */
 
         $customerPackage->payment_status =
             'rejected';

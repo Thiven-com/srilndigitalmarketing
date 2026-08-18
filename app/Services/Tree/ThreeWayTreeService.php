@@ -10,36 +10,91 @@ class ThreeWayTreeService
 {
     protected TreeService $treeService;
 
-    public function __construct(TreeService $treeService)
-    {
+    public function __construct(
+        TreeService $treeService
+    ) {
         $this->treeService = $treeService;
     }
 
-    public function activate(Customer $customer, string $packageId): ?ThreeWayReferral
-    {
-        return DB::transaction(function () use ($customer, $packageId) {
 
-            $existing = ThreeWayReferral::where('customer_id', $customer->id)
-                ->where('package_id', $packageId)
-                ->first();
+    /**
+     * Activate customer in a specific package tree.
+     *
+     * Same customer can exist in multiple package trees:
+     *
+     * Package 1 + SLM00000025
+     * Package 2 + SLM00000025
+     * Package 3 + SLM00000025
+     *
+     * But only one record for:
+     *
+     * package_id + userId
+     */
+    public function activate(
+        Customer $customer,
+        int|string $packageId
+    ): ?ThreeWayReferral {
 
-            if ($existing) {
-                return $existing;
-            }
+        return DB::transaction(function () use (
+            $customer,
+            $packageId
+        ) {
 
-            $customerUserId = $customer->userid;
+            $packageId = (int) $packageId;
 
-            if (!$customerUserId) {
-                return null;
-            }
+            $userId = $customer->userid;
+
 
             /*
             |--------------------------------------------------------------------------
-            | Root User
+            | Validate User ID
+            |--------------------------------------------------------------------------
+            */
+
+            if (!$userId) {
+
+                throw new \Exception(
+                    'Customer User ID not found.'
+                );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CHECK EXISTING RECORD
             |--------------------------------------------------------------------------
             |
-            | Change this to your actual root user ID.
+            | IMPORTANT:
             |
+            | Do NOT check only customer_id.
+            |
+            | Unique tree member is:
+            |
+            | package_id + userId
+            |
+            */
+
+            $existing = ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'userId',
+                    $userId
+                )
+                ->first();
+
+
+            if ($existing) {
+
+                return $existing;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ROOT USER
+            |--------------------------------------------------------------------------
             */
 
             $rootUserId = config(
@@ -47,175 +102,776 @@ class ThreeWayTreeService
                 'SLM00000001'
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Sponsor
-            |--------------------------------------------------------------------------
-            */
-
-            $sponsorId = $customer->sponsor_id ?: $rootUserId;
 
             /*
             |--------------------------------------------------------------------------
-            | First Root Node
+            | FIND ROOT FOR THIS PACKAGE
             |--------------------------------------------------------------------------
+            |
+            | Every package has its own root record.
+            |
             */
 
-            $rootExists = ThreeWayReferral::where(
-                'userId',
-                $rootUserId
+            $root = ThreeWayReferral::where(
+                'package_id',
+                $packageId
             )
                 ->where(
-                    'package_id',
-                    $packageId
-                )->exists();
+                    'userId',
+                    $rootUserId
+                )
+                ->first();
+
 
             /*
             |--------------------------------------------------------------------------
-            | If this customer itself is the root
+            | CUSTOMER IS ROOT
             |--------------------------------------------------------------------------
             */
 
-            if (!$rootExists && $customerUserId === $rootUserId) {
+            if ($userId === $rootUserId) {
 
-                return $this->createRootNode($customer);
+                /*
+                |--------------------------------------------------------------------------
+                | Root already exists for this package
+                |--------------------------------------------------------------------------
+                */
+
+                if ($root) {
+
+                    return $root;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | Create package root
+                |--------------------------------------------------------------------------
+                */
+
+                return $this->createRootNode(
+                    $customer,
+                    $packageId
+                );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Generate tree user ID
-            |--------------------------------------------------------------------------
-            */
-
-            $treeUserId =
-                $this->treeService->generateTreeUserId(
-                    $customerUserId,
-                    ThreeWayReferral::class
-                );
 
             /*
             |--------------------------------------------------------------------------
-            | Find placement
+            | ROOT MUST EXIST
             |--------------------------------------------------------------------------
             */
 
-            $placement =
-                $this->treeService->findPlacement(
-                    $rootUserId,
-                    $sponsorId,
-                    ThreeWayReferral::class,
-                    3
+            if (!$root) {
+
+                throw new \Exception(
+                    'Three-way root node not found for Package ID '
+                    . $packageId
+                    . '. Please initialize the package root first.'
                 );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER SPONSOR
+            |--------------------------------------------------------------------------
+            */
+
+            $sponsorId =
+                $customer->sponsor_id
+                ?: $rootUserId;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CHECK SPONSOR IN SAME PACKAGE TREE
+            |--------------------------------------------------------------------------
+            */
+
+            $sponsorNode = ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'userId',
+                    $sponsorId
+                )
+                ->first();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sponsor Does Not Exist In This Package
+            |--------------------------------------------------------------------------
+            |
+            | Example:
+            |
+            | Customer A has Package 1
+            | Sponsor has only Package 2
+            |
+            | Sponsor cannot be used from Package 2.
+            |
+            | Start from Package 1 root.
+            |
+            */
+
+            if (!$sponsorNode) {
+
+                $sponsorId =
+                    $rootUserId;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIND PLACEMENT
+            |--------------------------------------------------------------------------
+            */
 
             $placedUnder =
-                $placement['placedunder_id'];
+                $this->findPackagePlacement(
+                    $rootUserId,
+                    $sponsorId,
+                    $packageId
+                );
+
 
             if (!$placedUnder) {
+
                 throw new \Exception(
-                    'Three-way root node not found.'
+                    'Unable to find placement in Three-Way tree for Package ID '
+                    . $packageId
                 );
             }
 
+
             /*
             |--------------------------------------------------------------------------
-            | Root Map
+            | ROOT MAP
             |--------------------------------------------------------------------------
             */
 
             $rootMap =
-                $this->treeService->generateRootMap(
-                    ThreeWayReferral::class,
-                    $placedUnder
+                $this->generatePackageRootMap(
+                    $placedUnder,
+                    $packageId
                 );
+
 
             /*
             |--------------------------------------------------------------------------
-            | Insert
+            | CREATE TREE NODE
             |--------------------------------------------------------------------------
             */
 
-            $tree = new ThreeWayReferral();
+            $tree =
+                new ThreeWayReferral();
 
-            $tree->customer_id = $customer->id;
-            $tree->userId = $treeUserId;
-            $tree->sponser_id = $sponsorId;
-            $tree->package_id = $packageId;
-            $tree->placedunder_id = $placedUnder;
 
-            $tree->left_points = 0;
-            $tree->right_points = 0;
-            $tree->total_income = 0;
+            $tree->customer_id =
+                $customer->id;
 
-            $tree->rootmap = $rootMap;
-            $tree->presenttime = now();
-            $tree->points = 0;
-            $tree->edate = now();
 
-            $tree->g_count = 0;
-            $tree->g_reff = $customerUserId;
-            $tree->placedunderid_cnt = 0;
+            /*
+            |--------------------------------------------------------------------------
+            | PACKAGE ID
+            |--------------------------------------------------------------------------
+            */
 
-            $tree->cron_start = null;
-            $tree->cron_end = null;
+            $tree->package_id =
+                $packageId;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | USER ID
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->userId =
+                $userId;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SPONSOR
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->sponser_id =
+                $sponsorId;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | PLACEMENT
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->placedunder_id =
+                $placedUnder;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | POINTS
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->left_points =
+                0;
+
+            $tree->right_points =
+                0;
+
+            $tree->total_income =
+                0;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SETTLEMENT
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->last_settled_at =
+                null;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ROOT MAP
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->rootmap =
+                $rootMap;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | OTHER VALUES
+            |--------------------------------------------------------------------------
+            */
+
+            $tree->points =
+                0;
+
+            $tree->edate =
+                now();
+
+            $tree->g_count =
+                0;
+
+            $tree->g_reff =
+                $userId;
+
+            $tree->placedunderid_cnt =
+                0;
+
+            $tree->cron_start =
+                null;
+
+            $tree->cron_end =
+                null;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVE
+            |--------------------------------------------------------------------------
+            */
 
             $tree->save();
 
+
             /*
             |--------------------------------------------------------------------------
-            | Update parent
+            | UPDATE PARENT COUNTERS
             |--------------------------------------------------------------------------
             */
 
-            $this->treeService->updateParentCounters(
-                ThreeWayReferral::class,
-                $placedUnder
+            $this->updatePackageParentCounters(
+                $placedUnder,
+                $packageId
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Customer
-            |--------------------------------------------------------------------------
-            */
-
-            $customer->placedunder_id = $placedUnder;
-            $customer->rootmap = $rootMap;
-            $customer->save();
 
             return $tree;
         });
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE ROOT NODE
+    |--------------------------------------------------------------------------
+    */
+
     protected function createRootNode(
-        Customer $customer
+        Customer $customer,
+        int $packageId
     ): ThreeWayReferral {
 
-        $tree = new ThreeWayReferral();
+        /*
+        |--------------------------------------------------------------------------
+        | Double Check Root
+        |--------------------------------------------------------------------------
+        */
 
-        $tree->customer_id = $customer->id;
-        $tree->userId = $customer->userid;
-        $tree->sponser_id = $customer->userid;
-        $tree->placedunder_id = null;
+        $existing = ThreeWayReferral::where(
+            'package_id',
+            $packageId
+        )
+            ->where(
+                'userId',
+                $customer->userid
+            )
+            ->first();
 
-        $tree->left_points = 0;
-        $tree->right_points = 0;
-        $tree->total_income = 0;
 
-        $tree->rootmap = ',' . $customer->userid . ',';
+        if ($existing) {
 
-        $tree->presenttime = now();
-        $tree->points = 0;
-        $tree->edate = now();
+            return $existing;
+        }
 
-        $tree->g_count = 0;
-        $tree->g_reff = $customer->userid;
-        $tree->placedunderid_cnt = 0;
 
-        $tree->cron_start = null;
-        $tree->cron_end = null;
+        /*
+        |--------------------------------------------------------------------------
+        | Create Root
+        |--------------------------------------------------------------------------
+        */
+
+        $tree =
+            new ThreeWayReferral();
+
+
+        $tree->customer_id =
+            $customer->id;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PACKAGE ID
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->package_id =
+            $packageId;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROOT USER ID
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->userId =
+            $customer->userid;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROOT HAS NO SPONSOR
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->sponser_id =
+            null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROOT HAS NO PARENT
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->placedunder_id =
+            null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | POINTS
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->left_points =
+            0;
+
+        $tree->right_points =
+            0;
+
+        $tree->total_income =
+            0;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SETTLEMENT
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->last_settled_at =
+            null;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROOT MAP
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->rootmap =
+            ',' .
+            $customer->userid .
+            ',';
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | OTHER VALUES
+        |--------------------------------------------------------------------------
+        */
+
+        $tree->points =
+            0;
+
+        $tree->edate =
+            now();
+
+        $tree->g_count =
+            0;
+
+        $tree->g_reff =
+            $customer->userid;
+
+        $tree->placedunderid_cnt =
+            0;
+
+        $tree->cron_start =
+            null;
+
+        $tree->cron_end =
+            null;
+
 
         $tree->save();
 
+
         return $tree;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | FIND PACKAGE PLACEMENT
+    |--------------------------------------------------------------------------
+    |
+    | Three-Way Tree:
+    |
+    | Maximum 3 direct children per parent.
+    |
+    | IMPORTANT:
+    | Every query is restricted to package_id.
+    |
+    */
+
+    protected function findPackagePlacement(
+        string $rootUserId,
+        string $sponsorId,
+        int $packageId
+    ): ?string {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Start From Sponsor
+        |--------------------------------------------------------------------------
+        */
+
+        $startNode =
+            ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'userId',
+                    $sponsorId
+                )
+                ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | If Sponsor Not Found, Start From Package Root
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$startNode) {
+
+            $startNode =
+                ThreeWayReferral::where(
+                    'package_id',
+                    $packageId
+                )
+                    ->where(
+                        'userId',
+                        $rootUserId
+                    )
+                    ->first();
+        }
+
+
+        if (!$startNode) {
+
+            return null;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | BFS QUEUE
+        |--------------------------------------------------------------------------
+        */
+
+        $queue = [
+            $startNode->userId
+        ];
+
+
+        $visited = [];
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        while (!empty($queue)) {
+
+            $currentUserId =
+                array_shift($queue);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Prevent Duplicate Search
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                isset(
+                    $visited[$currentUserId]
+                )
+            ) {
+
+                continue;
+            }
+
+
+            $visited[$currentUserId] =
+                true;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Get Children From SAME PACKAGE
+            |--------------------------------------------------------------------------
+            */
+
+            $children =
+                ThreeWayReferral::where(
+                    'package_id',
+                    $packageId
+                )
+                    ->where(
+                        'placedunder_id',
+                        $currentUserId
+                    )
+                    ->orderBy(
+                        'id',
+                        'asc'
+                    )
+                    ->get();
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Parent Has Available Position
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $children->count() < 3
+            ) {
+
+                return $currentUserId;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Add Children To Queue
+            |--------------------------------------------------------------------------
+            */
+
+            foreach (
+                $children
+                as $child
+            ) {
+
+                $queue[] =
+                    $child->userId;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GENERATE ROOT MAP
+    |--------------------------------------------------------------------------
+    */
+
+    protected function generatePackageRootMap(
+        string $placedUnder,
+        int $packageId
+    ): string {
+
+        $path = [];
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Start From Parent
+        |--------------------------------------------------------------------------
+        */
+
+        $current =
+            ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'userId',
+                    $placedUnder
+                )
+                ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Build Parent Path
+        |--------------------------------------------------------------------------
+        */
+
+        while ($current) {
+
+            array_unshift(
+                $path,
+                $current->userId
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Root Reached
+            |--------------------------------------------------------------------------
+            */
+
+            if (!$current->placedunder_id) {
+
+                break;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Find Parent In SAME PACKAGE
+            |--------------------------------------------------------------------------
+            */
+
+            $current =
+                ThreeWayReferral::where(
+                    'package_id',
+                    $packageId
+                )
+                    ->where(
+                        'userId',
+                        $current->placedunder_id
+                    )
+                    ->first();
+        }
+
+
+        return ',' .
+            implode(',', $path) .
+            ',';
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE PARENT CHILD COUNT
+    |--------------------------------------------------------------------------
+    */
+
+    protected function updatePackageParentCounters(
+        string $placedUnder,
+        int $packageId
+    ): void {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find Parent In SAME PACKAGE
+        |--------------------------------------------------------------------------
+        */
+
+        $parent =
+            ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'userId',
+                    $placedUnder
+                )
+                ->first();
+
+
+        if (!$parent) {
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Count Children In SAME PACKAGE
+        |--------------------------------------------------------------------------
+        */
+
+        $count =
+            ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'placedunder_id',
+                    $placedUnder
+                )
+                ->count();
+
+
+        $parent->placedunderid_cnt =
+            $count;
+
+
+        $parent->save();
     }
 }

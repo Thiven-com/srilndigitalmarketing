@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\PackageLevel;
 use App\Models\Reward;
 use App\Models\CustomerPackage;
+use App\Models\ThreeWayReferral;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -34,7 +35,7 @@ class BonusService
 
             /*
             |--------------------------------------------------------------------------
-            | Get package level bonus configuration
+            | PACKAGE LEVEL CONFIGURATION
             |--------------------------------------------------------------------------
             */
 
@@ -50,13 +51,10 @@ class BonusService
 
             if ($levels->isEmpty()) {
 
-                Log::info(
-                    'No package level bonus configuration found.',
-                    [
-                        'package_id' => $packageId,
-                        'customer_id' => $customer->id,
-                    ]
-                );
+                Log::info('No package levels found.', [
+                    'package_id' => $packageId,
+                    'customer_id' => $customer->id,
+                ]);
 
                 return;
             }
@@ -64,17 +62,35 @@ class BonusService
 
             /*
             |--------------------------------------------------------------------------
-            | Level 1 starts from SPONSOR
+            | FIND PURCHASING USER IN SAME PACKAGE TREE
             |--------------------------------------------------------------------------
             */
 
-            if (empty($customer->sponsor_id)) {
+            $currentNode = ThreeWayReferral::where(
+                'package_id',
+                $packageId
+            )
+                ->where(
+                    'userId',
+                    $customer->userid
+                )
+                ->first();
 
-                Log::info(
-                    'No sponsor found. No level bonus distributed.',
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER MUST EXIST IN THIS PACKAGE TREE
+            |--------------------------------------------------------------------------
+            */
+
+            if (!$currentNode) {
+
+                Log::warning(
+                    'Customer not found in package tree. Bonus skipped.',
                     [
                         'customer_id' => $customer->id,
                         'userid' => $customer->userid,
+                        'package_id' => $packageId,
                     ]
                 );
 
@@ -84,65 +100,148 @@ class BonusService
 
             /*
             |--------------------------------------------------------------------------
-            | Get Level 1 Sponsor
-            |--------------------------------------------------------------------------
-            */
-
-            $upline = Customer::where(
-                'userid',
-                $customer->sponsor_id
-            )->first();
-
-
-            if (!$upline) {
-
-                Log::warning(
-                    'Sponsor not found for package bonus.',
-                    [
-                        'customer_id' => $customer->id,
-                        'sponsor_id' => $customer->sponsor_id,
-                    ]
-                );
-
-                return;
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | Level 1 - Level 6
+            | LEVEL-WISE REWARD
             |--------------------------------------------------------------------------
             */
 
             foreach ($levels as $level) {
 
-                if (!$upline) {
+                /*
+                |--------------------------------------------------------------------------
+                | GET PARENT USING placedunder_id
+                |--------------------------------------------------------------------------
+                |
+                | DO NOT USE:
+                |
+                | customer.sponsor_id
+                | tree.sponser_id
+                |
+                */
+
+                if (empty($currentNode->placedunder_id)) {
+
+                    Log::info(
+                        'No placement upline available.',
+                        [
+                            'package_id' => $packageId,
+                            'userid' => $currentNode->userId,
+                            'level' => $level->level,
+                        ]
+                    );
+
                     break;
                 }
 
 
                 /*
                 |--------------------------------------------------------------------------
-                | Never reward purchasing customer
+                | FIND PARENT IN SAME PACKAGE
+                |--------------------------------------------------------------------------
+                */
+
+                $parentNode = ThreeWayReferral::where(
+                    'package_id',
+                    $packageId
+                )
+                    ->where(
+                        'userId',
+                        $currentNode->placedunder_id
+                    )
+                    ->first();
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | NO PARENT
+                |--------------------------------------------------------------------------
+                */
+
+                if (!$parentNode) {
+
+                    Log::warning(
+                        'Placement parent not found.',
+                        [
+                            'package_id' =>
+                                $packageId,
+
+                            'current_userid' =>
+                                $currentNode->userId,
+
+                            'placedunder_id' =>
+                                $currentNode->placedunder_id,
+
+                            'level' =>
+                                $level->level,
+                        ]
+                    );
+
+                    break;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | FIND CUSTOMER
+                |--------------------------------------------------------------------------
+                */
+
+                $receiver = Customer::where(
+                    'userid',
+                    $parentNode->userId
+                )->first();
+
+
+                if (!$receiver) {
+
+                    Log::warning(
+                        'Placement parent customer not found.',
+                        [
+                            'package_id' =>
+                                $packageId,
+
+                            'userid' =>
+                                $parentNode->userId,
+
+                            'level' =>
+                                $level->level,
+                        ]
+                    );
+
+                    break;
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | PREVENT SELF REWARD
                 |--------------------------------------------------------------------------
                 */
 
                 if (
-                    (int) $upline->id ===
+                    (int) $receiver->id ===
                     (int) $customer->id
                 ) {
 
                     Log::warning(
-                        'Self bonus prevented.',
+                        'Self reward prevented.',
                         [
-                            'customer_id' => $customer->id,
-                            'userid' => $customer->userid,
-                            'level' => $level->level,
+                            'customer_id' =>
+                                $customer->id,
+
+                            'package_id' =>
+                                $packageId,
+
+                            'level' =>
+                                $level->level,
                         ]
                     );
 
-                    $upline =
-                        $this->getNextSponsor($upline);
+                    /*
+                    | Even if self is encountered,
+                    | continue upward through placement tree.
+                    */
+
+                    $currentNode = $parentNode;
 
                     continue;
                 }
@@ -150,51 +249,46 @@ class BonusService
 
                 /*
                 |--------------------------------------------------------------------------
-                | Calculate level bonus
+                | CALCULATE REWARD
                 |--------------------------------------------------------------------------
                 */
 
-                $amount =
-                    $this->calculateAmount(
-                        $level,
-                        $packageAmount
-                    );
-
-
-                if ($amount <= 0) {
-
-                    $upline =
-                        $this->getNextSponsor($upline);
-
-                    continue;
-                }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Credit Reward
-                |--------------------------------------------------------------------------
-                */
-
-                $this->creditReward(
-                    customer: $upline,
-                    amount: $amount,
-                    level: $level,
-                    packageCustomer: $customer,
-                    sourceType: $sourceType,
-                    sourceId: $sourceId,
-                    packageId: $packageId
+                $amount = $this->calculateAmount(
+                    $level,
+                    $packageAmount
                 );
 
 
+                if ($amount > 0) {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | CREDIT REWARD
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $this->creditReward(
+                        customer: $receiver,
+                        amount: $amount,
+                        level: $level,
+                        packageCustomer: $customer,
+                        sourceType: $sourceType,
+                        sourceId: $sourceId,
+                        packageId: $packageId
+                    );
+                }
+
+
                 /*
                 |--------------------------------------------------------------------------
-                | Move to next sponsor
+                | IMPORTANT
                 |--------------------------------------------------------------------------
+                |
+                | NEXT LEVEL STARTS FROM THIS PARENT.
+                |
                 */
 
-                $upline =
-                    $this->getNextSponsor($upline);
+                $currentNode = $parentNode;
             }
         });
     }

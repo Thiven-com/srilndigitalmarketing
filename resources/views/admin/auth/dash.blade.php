@@ -276,11 +276,12 @@
                 </div>
 
             </div>
-
-            <!-- ================= STATS CARDS ================= -->
+            {{-- ================= STATS CARDS ================= --}}
 
             <div class="row g-4 mb-4">
-                <div class="col-xl-4 col-md-6">
+
+                {{-- PACKAGE 1 --}}
+                <div class="col-xl-4 col-lg-6 col-md-6">
 
                     <div class="dashboard-card">
 
@@ -288,21 +289,82 @@
                             <i class="ti ti-cash"></i>
                         </div>
 
-                        <h6>Admin Commission</h6>
+                        <h6>
+                            Three Way Commission
+                        </h6>
 
                         <h3>
-                            ₹{{ number_format($adminCommission ?? 0, 2) }}
+                            ₹{{ number_format($package1Commission ?? 0, 2) }}
                         </h3>
 
                         <p>
-                            Total company commission generated from approved package purchases.
+                            Admin commission generated from Three Way rewards.
                         </p>
 
                     </div>
 
                 </div>
 
-                <div class="col-xl-4 col-md-6">
+
+                {{-- PACKAGE 2 --}}
+                <div class="col-xl-4 col-lg-6 col-md-6">
+
+                    <div class="dashboard-card">
+
+                        <div class="card-icon bg-primary-gradient">
+                            <i class="ti ti-cash"></i>
+                        </div>
+
+                        <h6>
+                            F & I Promotes Commission
+                        </h6>
+
+                        <h3>
+                            ₹{{ number_format($package2Commission ?? 0, 2) }}
+                        </h3>
+
+                        <p>
+                            Admin commission generated from F & I Promotes rewards.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                {{-- PACKAGE 3 --}}
+                <div class="col-xl-4 col-lg-6 col-md-6">
+
+                    <div class="dashboard-card">
+
+                        <div class="card-icon bg-success-gradient">
+                            <i class="ti ti-cash"></i>
+                        </div>
+
+                        <h6>
+                            Mini Web Commission
+                        </h6>
+
+                        <h3>
+                            ₹{{ number_format($package3Commission ?? 0, 2) }}
+                        </h3>
+
+                        <p>
+                            Admin commission generated from Mini Web rewards.
+                        </p>
+
+                    </div>
+
+                </div>
+            </div>
+
+
+            {{-- ================= GENERAL STATISTICS ================= --}}
+
+            <div class="row g-4 mb-4">
+
+                {{-- TOTAL PACKAGES --}}
+                <div class="col-xl-6 col-md-6">
 
                     <div class="dashboard-card">
 
@@ -310,17 +372,25 @@
                             <i class="ti ti-package"></i>
                         </div>
 
-                        <h6>Total Packages</h6>
+                        <h6>
+                            Total Packages
+                        </h6>
 
-                        <h3>{{ $totalPackages }}</h3>
+                        <h3>
+                            {{ $totalPackages }}
+                        </h3>
 
-                        <p>All active and inactive packages available in the system.</p>
+                        <p>
+                            All active and inactive packages available in the system.
+                        </p>
 
                     </div>
 
                 </div>
 
-                <div class="col-xl-4 col-md-6">
+
+                {{-- TOTAL CUSTOMERS --}}
+                <div class="col-xl-6 col-md-6">
 
                     <div class="dashboard-card">
 
@@ -328,48 +398,23 @@
                             <i class="ti ti-users"></i>
                         </div>
 
-                        <h6>Total Customers</h6>
+                        <h6>
+                            Total Customers
+                        </h6>
 
-                        <h3>{{ $totalCustomers }}</h3>
+                        <h3>
+                            {{ $totalCustomers }}
+                        </h3>
 
-                        <p>Registered customers currently available in the platform.</p>
+                        <p>
+                            Registered customers currently available in the platform.
+                        </p>
 
                     </div>
 
                 </div>
 
             </div>
-
-
-
-            {{-- ================= FOOTER ================= --}}
-
-            {{-- <div class="dashboard-footer">
-
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-
-                    <p class="mb-0 text-muted">
-
-                        {{ now()->year }} © {{ $site->site_name ?? ' ' }}
-                        . All Rights Reserved.
-
-                    </p>
-
-                    <p class="mb-0">
-
-                        Designed & Developed By
-
-                        <a href="javascript:void(0)" class="text-primary fw-semibold text-decoration-none">
-
-                            {{ $site->site_name ?? ' '}}
-
-                        </a>
-
-                    </p>
-
-                </div>
-
-            </div> --}}
 
         </div>
 
