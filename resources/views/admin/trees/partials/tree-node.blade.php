@@ -3,7 +3,8 @@
     <a
         href="{{ route('admin.trees.index', [
             'tree' => $treeType,
-            'user' => $node['userId']
+            'user' => $node['userId'],
+            'package_id' => $packageId
         ]) }}"
         class="tree-user-link"
     >
